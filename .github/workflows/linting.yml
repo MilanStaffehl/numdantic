@@ -1,0 +1,49 @@
+name: Code Quality
+
+on:
+  push:
+    paths-ignore:
+      - 'doc/**'
+      - '**.md'
+      - '**.rst'
+  pull_request:
+
+jobs:
+  lint-ubuntu:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[lint]
+
+    - name: Lint with flake8
+      run: |
+        flake8 .
+
+    - name: Type check with mypy
+      run: |
+        mypy .
+
+    - name: Format check with black
+      run: |
+        black --check --config pyproject.toml .
+
+    - name: Code complexity with radon
+      run: |
+        printf "\nradon code complexity:\n"
+        radon cc --min C --total-average .
+        printf "\nradon code maintainability indices:\n"
+        radon mi .
+        printf "\ncode complexity with flake8 (max cc = 10):\n"
+        flake8 --radon-max-cc=10 --select=R --count --statistics

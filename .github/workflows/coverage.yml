@@ -1,0 +1,56 @@
+name: Coverage badge
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'doc/**'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  coverage:
+    name: Tests on Ubuntu with Python 3.11
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[test]
+          pip install coverage
+
+      - name: Run coverage
+        run: |
+          coverage run -m --data-file=.coverage pytest .
+
+      - name: Create JSON report
+        run: |
+          coverage json -i
+          export TOTAL=$(python -c "import json;print(json.load(open('coverage.json'))['totals']['percent_covered_display'])")
+          echo "total=$TOTAL" >> $GITHUB_ENV
+          echo "### Total coverage: ${TOTAL}%" >> $GITHUB_STEP_SUMMARY
+
+      - name: Make badge
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          # GIST_TOKEN is a GitHub personal access token with scope "gist".
+          auth: ${{ secrets.GIST_TOKEN }}
+          gistID: 84965933a22ab4f94b02d8563982025d
+          filename: numdantic_coverage.json
+          label: Coverage
+          message: ${{ env.total }}%
+          minColorRange: 50
+          maxColorRange: 95
+          valColorRange: ${{ env.total }}

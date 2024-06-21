@@ -1,0 +1,42 @@
+name: Tests
+
+on:
+  push:
+    paths-ignore:
+      - 'doc/**'
+      - '**.md'
+      - '**.rst'
+  pull_request:
+
+jobs:
+  tests:
+    # To limit billable minutes, test only earliest supported version on Ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[test]
+        pip install flake8
+
+    - name: Syntax check
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    - name: Unit tests with pytest
+      run: |
+        pytest ./tests/unit
+
+    - name: Integration tests with pytest
+      run: |
+        pytest ./tests/integration

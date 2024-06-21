@@ -25,16 +25,32 @@ Issues = "https://github.com/MilanStaffehl/numdantic/issues"
 
 [project.optional-dependencies]
 dev = [
+    "pre-commit",
+    "commitizen",
     "flake8",
     "flake8-bugbear",
     "radon",
-    "pre-commit",
     "isort",
     "black",
     "mypy",
     "pytest",
-    "pytest-mock",
-    "commitizen",
+    "pytest>=7.0",
+    "pytest-mock>=3.11.1",
+    "pytest-subtests>=0.12.0",
+]
+test = [
+    "pytest>=7.0",
+    "pytest-mock>=3.11.1",
+    "pytest-subtests>=0.12.0",
+]
+lint = [
+    "flake8",
+    "flake8-bugbear",
+    "radon",
+    "isort",
+    "black",
+    "mypy",
+    "pytest",
     "pytest>=7.0",
     "pytest-mock>=3.11.1",
     "pytest-subtests>=0.12.0",
