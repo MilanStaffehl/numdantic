@@ -1,0 +1,68 @@
+[project]
+name = "numdantic"
+version = "0.1.0"
+authors = [
+  {name="Milan Staffehl"},
+]
+description = "Library for numpy typing support and numpy array validation with pydantic"
+keywords = ["typing", "types", "numpy", "pydantic", "validation", "type hints", "type checking", "verification"]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic >= 2.5.2, <= 3.0.0", "numpy"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/MilanStaffehl/numdantic"
+Issues = "https://github.com/MilanStaffehl/numdantic/issues"
+
+# OPTIONAL DEPENDENCIES
+
+[project.optional-dependencies]
+dev = [
+    "flake8",
+    "flake8-bugbear",
+    "radon",
+    "pre-commit",
+    "isort",
+    "black",
+    "mypy",
+    "pytest",
+    "pytest-mock",
+    "commitizen",
+    "pytest>=7.0",
+    "pytest-mock>=3.11.1",
+    "pytest-subtests>=0.12.0",
+]
+
+# TOOLS
+
+[tool.black]
+line-length = 79
+
+[tool.isort]
+src_paths = ["src/numdantic", "tests"]
+known_first_party = ["numdantic"]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+line_length = 79
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version_scheme = "pep440"
+version_provider = "pep621"
+version_files = ["pyproject.toml:version"]
+update_changelog_on_bump = false
+major_version_zero = true

@@ -1,0 +1,11 @@
+[flake8]
+select = C,E,F,W,B,B950
+# create compatability with black
+extend-ignore = E203, E501, W503
+max-complexity = 15
+exclude =
+    .git,
+    __pycache__,
+    docs,
+    build,
+    dist
