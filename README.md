@@ -6,6 +6,10 @@ Typing support for [`numpy`](https://numpy.org/) arrays, compatible with [`pydan
 [![Code Quality](https://github.com/MilanStaffehl/numdantic/actions/workflows/linting.yml/badge.svg)](https://github.com/MilanStaffehl/numdantic/actions/workflows/linting.yml)
 ![Covergae badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/MilanStaffehl/84965933a22ab4f94b02d8563982025d/raw/926382768a39dfd4029b26bdbecb9cab1acdff0d/numdantic_coverage.json)
 
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 ## About
 
 `numpy` is a widely used Python library for data science and numerical computation. With the Python typing system becoming increasingly popular, the need for proper ways to type `numpy` arrays is rising. While the developers of `numpy` are dedicated to making their own typing system for their library, development is slow and the currently available solutions do not utilize the possibilities of the Python typing system to their full extent.
