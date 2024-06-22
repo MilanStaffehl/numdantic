@@ -1,6 +1,10 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "numdantic"
-version = "0.1.0"
+version = "0.0.1"
 authors = [
   {name="Milan Staffehl"},
 ]
