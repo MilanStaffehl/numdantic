@@ -4,7 +4,7 @@ Typing support for [`numpy`](https://numpy.org/) arrays, compatible with [`pydan
 
 [![Tests](https://github.com/MilanStaffehl/numdantic/actions/workflows/tests.yml/badge.svg)](https://github.com/MilanStaffehl/numdantic/actions/workflows/tests.yml)
 [![Code Quality](https://github.com/MilanStaffehl/numdantic/actions/workflows/linting.yml/badge.svg)](https://github.com/MilanStaffehl/numdantic/actions/workflows/linting.yml)
-![Covergae badge](https://img.shields.io/endpoint?url=https://gist.github.com/MilanStaffehl/84965933a22ab4f94b02d8563982025d/raw/numdantic_coverage.json)
+![Covergae badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/MilanStaffehl/84965933a22ab4f94b02d8563982025d/raw/926382768a39dfd4029b26bdbecb9cab1acdff0d/numdantic_coverage.json)
 
 ## About
 
@@ -304,7 +304,7 @@ In principle, this can be remedied by simply adding built-in types to the allowe
 
 ## Contributing
 
-`numdanitc` is looking for your help! If you find a bug, have a request for a new feature, or wish to contribute, follow these guidelines.
+`numdantic` is looking for your help! If you find a bug, have a request for a new feature, or wish to contribute, follow these guidelines.
 
 ### Code of conduct
 
