@@ -4,8 +4,8 @@ Typing support for [`numpy`](https://numpy.org/) arrays, compatible with [`pydan
 
 |     |     |
 | --- | :-: |
-| CI | [![Tests](https://github.com/MilanStaffehl/numdantic/actions/workflows/tests.yml/badge.svg)](https://github.com/MilanStaffehl/numdantic/actions/workflows/tests.yml)[![Code Quality](https://github.com/MilanStaffehl/numdantic/actions/workflows/linting.yml/badge.svg)](https://github.com/MilanStaffehl/numdantic/actions/workflows/linting.yml)![Covergae badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/MilanStaffehl/84965933a22ab4f94b02d8563982025d/raw/926382768a39dfd4029b26bdbecb9cab1acdff0d/numdantic_coverage.json) |
-| Dev | [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) |
+| CI | [![Tests](https://github.com/MilanStaffehl/numdantic/actions/workflows/tests.yml/badge.svg)](https://github.com/MilanStaffehl/numdantic/actions/workflows/tests.yml) [![Code Quality](https://github.com/MilanStaffehl/numdantic/actions/workflows/linting.yml/badge.svg)](https://github.com/MilanStaffehl/numdantic/actions/workflows/linting.yml) ![Covergae badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/MilanStaffehl/84965933a22ab4f94b02d8563982025d/raw/926382768a39dfd4029b26bdbecb9cab1acdff0d/numdantic_coverage.json) |
+| Dev | [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit) [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) |
 
 ## About
 
