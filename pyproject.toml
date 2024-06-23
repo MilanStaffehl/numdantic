@@ -16,9 +16,14 @@ dependencies = [
     "pydantic >= 2.5.2, <= 3.0.0", "numpy"
 ]
 classifiers = [
-    "Programming Language :: Python :: 3",
+    "Natural Language :: English",
+    "Intended Audience :: Developers",
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+    "Topic :: Software Development",
 ]
 
 [project.urls]
