@@ -4,16 +4,25 @@ Unit tests for the _numpy_types.py module.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterator
+from collections.abc import Callable, Iterator, Sequence
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 import numpy as np
+import numpy.typing
 import pytest
+from pydantic_core import PydanticCustomError, ValidationError
 
 from numdantic import _numpy_types
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture, MockType
     from pytest_subtests import SubTests
+
+
+CastFuncType: TypeAlias = Callable[
+    [Sequence[Any] | numpy.typing.NDArray[np.generic]],
+    numpy.typing.NDArray[np.generic],
+]
 
 
 @pytest.fixture
@@ -312,3 +321,119 @@ def test_validate_array_dtype_invalid_dtype_specific_dtype_can_cast(
     assert output.dtype == np.dtype(expected_dtype)
     assert len(error_list) == 0
     patch_pydantic_error.assert_not_called()
+
+
+@pytest.fixture
+def cast_function() -> Iterator[CastFuncType]:
+    """Return the cast function retrievable from _get_cast_function"""
+    # reason for type ignore: issue #7
+    yield _numpy_types._get_cast_function(np.int64)  # type: ignore[arg-type]
+
+
+def test_cast_to_array_from_array(cast_function: CastFuncType) -> None:
+    """Test that functions returns arrays as-is (even if dtype is wrong)"""
+    test_array = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    output = cast_function(test_array)
+    np.testing.assert_equal(test_array, output)
+    assert output.dtype == np.dtype(np.float32)  # not changed by cast
+
+
+def test_cast_to_array_nested_list(cast_function: CastFuncType) -> None:
+    """Test that functions casts nested lists to array of correct dtype"""
+    test_sequence = [[1.0, 2.0], [3.0, 4.0]]  # elements are floats!
+    output = cast_function(test_sequence)
+    np.testing.assert_equal(np.array([[1, 2], [3, 4]], dtype=np.int64), output)
+    assert output.dtype == np.dtype(np.int64)
+
+
+def test_cast_to_array_nested_tuple(cast_function: CastFuncType) -> None:
+    """Test that functions casts nested tuples to array of correct dtype"""
+    test_sequence = ((1.0, 2.0), (3.0, 4.0))  # elements are floats!
+    output = cast_function(test_sequence)
+    np.testing.assert_equal(np.array([[1, 2], [3, 4]], dtype=np.int64), output)
+    assert output.dtype == np.dtype(np.int64)
+
+
+def test_cast_to_array_nested_mixed_sequence(
+    cast_function: CastFuncType,
+) -> None:
+    """Test that functions casts mixed sequences to array of correct dtype"""
+    test_sequence = [(1.0, 2.0), (3.0, 4.0)]  # list of tuples
+    output = cast_function(test_sequence)
+    np.testing.assert_equal(np.array([[1, 2], [3, 4]], dtype=np.int64), output)
+    assert output.dtype == np.dtype(np.int64)
+
+
+def test_cast_to_array_nested_incompatible_element_types(
+    cast_function: CastFuncType,
+) -> None:
+    """Test that an error is raised when sequence elements are incompatible"""
+    test_sequence = [["str", 1], [0.2, "abc"]]
+    with pytest.raises(PydanticCustomError) as excinfo:
+        cast_function(test_sequence)
+    expected_msg = (
+        "Received sequence has inhomogeneous part or invalid element types. "
+        "Original exception:\ninvalid literal for int() with base 10: 'str'"
+    )
+    assert str(excinfo.value) == expected_msg
+
+
+def test_cast_to_array_nested_inhomogeneous_sequence(
+    cast_function: CastFuncType,
+) -> None:
+    """Test that an error is raised for inhomogeneous sequences"""
+    test_sequence = [[1, 2, 3], [1, 2], 5]
+    with pytest.raises(PydanticCustomError) as excinfo:
+        cast_function(test_sequence)
+    expected_msg = (
+        "Received sequence has inhomogeneous part or invalid element types. "
+        "Original exception:\nsetting an array element with a sequence. The "
+        "requested array has an inhomogeneous shape after 1 dimensions. The "
+        "detected shape was (3,) + inhomogeneous part."
+    )
+    assert str(excinfo.value) == expected_msg
+
+
+def test_raise_validation_error_single_error() -> None:
+    """Test raising a Validation error from one error"""
+    input_array = np.array([1, 2], dtype=np.int32)
+    errors = [PydanticCustomError("err_type", "error_message")]
+    with pytest.raises(ValidationError) as excinfo:
+        _numpy_types._raise_validation_error(input_array, errors, "model name")
+    expected_msg = (
+        "1 validation error for model name\n  error_message [type=err_type, "
+        "input_value=array([1, 2], dtype=int32), input_type=ndarray]"
+    )
+    assert str(excinfo.value) == expected_msg
+
+
+def test_raise_validation_error_two_errors() -> None:
+    """Test raising a Validation error from two errors"""
+    input_array = np.array([1, 2], dtype=np.int32)
+    errors = [
+        PydanticCustomError("err_type_1", "error_message_1"),
+        PydanticCustomError("err_type_2", "error_message_2"),
+    ]
+    with pytest.raises(ValidationError) as excinfo:
+        _numpy_types._raise_validation_error(input_array, errors, "model name")
+    expected_msg = (
+        "2 validation errors for model name\n  error_message_1 "
+        "[type=err_type_1, input_value=array([1, 2], dtype=int32), "
+        "input_type=ndarray]\n  error_message_2 [type=err_type_2, "
+        "input_value=array([1, 2], dtype=int32), input_type=ndarray]"
+    )
+    assert str(excinfo.value) == expected_msg
+
+
+def test_raise_validation_error_no_model_name() -> None:
+    """Test raising a Validation error without a model name"""
+    input_array = np.array([1, 2], dtype=np.int32)
+    errors = [PydanticCustomError("err_type", "error_message")]
+    with pytest.raises(ValidationError) as excinfo:
+        _numpy_types._raise_validation_error(input_array, errors, None)
+    expected_msg = (
+        "1 validation error for NDArray validation\n  error_message "
+        "[type=err_type, input_value=array([1, 2], dtype=int32), "
+        "input_type=ndarray]"
+    )
+    assert str(excinfo.value) == expected_msg
