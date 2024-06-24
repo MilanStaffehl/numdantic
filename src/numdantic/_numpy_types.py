@@ -383,9 +383,9 @@ def _get_array_validator(
     return validate_array
 
 
-def _get_cast_schema(
+def _get_cast_function(
     real_type: np.generic,
-) -> Callable[[Sequence[Any]], _GenericNDArrayType]:
+) -> Callable[[Sequence[Any] | _GenericNDArrayType], _GenericNDArrayType]:
     """
     Return a function that may cast a sequence to a numpy array.
 
@@ -399,7 +399,9 @@ def _get_cast_schema(
         into a numpy array of dtype ``real_type``.
     """
 
-    def cast_to_array(x: Sequence[Any]) -> _GenericNDArrayType:
+    def cast_to_array(
+        x: Sequence[Any] | _GenericNDArrayType,
+    ) -> _GenericNDArrayType:
         """
         Turn given sequence into a numpy array.
 
@@ -501,7 +503,7 @@ class _NDArrayPydanticAnnotation:
         dtype_type = get_args(get_args(_source_type)[1])[0]
 
         # construct validator functions
-        cast_func = _get_cast_schema(dtype_type)
+        cast_func = _get_cast_function(dtype_type)
         validator_lax = _get_array_validator(
             expected_shape, dtype_type, False, _handler.field_name
         )
