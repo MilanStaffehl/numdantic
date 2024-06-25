@@ -8,6 +8,31 @@ Typing support for [`numpy`](https://numpy.org/) arrays, compatible with [`pydan
 | PyPI | ![PyPI - Version](https://img.shields.io/pypi/v/numdantic?logo=pypi&logoColor=yellow&label=PyPI&color=blue) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/numdantic?logo=Python&logoColor=yellow&label=Python&color=blue) |
 | Dev | [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit) [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) |
 
+## Table of contents
+
+- [About](#about)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Concepts](#concepts)
+  - [Axes of unspecified length](#axes-of-unspecified-length)
+  - [Axes of specific length](#axes-of-specific-length)
+  - [Named axes](#named-axes)
+  - [Broader dtypes](#broader-dtypes)
+  - [Behavior in lax vs. strict mode](#behavior-in-lax-vs-strict-mode)
+  - [Arrays from sequences](#arrays-from-sequences)
+- [Limitations](#limitations)
+  - [Wrong shapes in assignments](#wrong-shapes-in-assignments)
+  - [Mixing of named axes and generic axes](#mixing-of-named-axes-and-generic-axes)
+  - [Using Python built-ins as dtype](#using-python-built-ins-as-dtype)
+- [Alternatives](#alternatives)
+- [Contributing](#contributing)
+  - [Code of conduct](#code-of-conduct)
+  - [Bug reports](#bug-reports)
+  - [Feature requests](#feature-requests)
+  - [Pull requests](#pull-requests)
+- [Authors](#authors)
+
 ## About
 
 `numpy` is a widely used Python library for data science and numerical computation. With the Python typing system becoming increasingly popular, the need for proper ways to type `numpy` arrays is rising. While the developers of `numpy` are dedicated to making their own typing system for their library, development is slow and the currently available solutions do not utilize the possibilities of the Python typing system to their full extent.
