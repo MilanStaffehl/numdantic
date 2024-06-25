@@ -22,7 +22,7 @@ Typing support for [`numpy`](https://numpy.org/) arrays, compatible with [`pydan
   - [Behavior in lax vs. strict mode](#behavior-in-lax-vs-strict-mode)
   - [Arrays from sequences](#arrays-from-sequences)
 - [Limitations](#limitations)
-  - [Wrong shapes in assignments](#wrong-shapes-in-assignments)
+  - [Wrong shapes or dtypes in assignments](#wrong-shapes-or-dtypes-in-assignments)
   - [Mixing of named axes and generic axes](#mixing-of-named-axes-and-generic-axes)
   - [Using Python built-ins as dtype](#using-python-built-ins-as-dtype)
 - [Alternatives](#alternatives)
@@ -246,9 +246,9 @@ assert my_model["array"].dtype is np.dtype(np.int64)  # passes
 
 ## Limitations
 
-### Wrong shapes in assignments
+### Wrong shapes or dtypes in assignments
 
-Due to how `numpy` handles the shape of its `ndarray` type, static type checkers will unfortunately not be able to detect a wrong shape in assignments. For example, the following code will not raise an error when running it through a type checker:
+Due to how `numpy` handles the shape and dtype of its `ndarray` type, static type checkers will unfortunately not be able to detect a wrong shape or a wrong dtype in assignments. For example, the following code will not raise an error when running it through a type checker:
 
 ```Python
 import numpy as np
@@ -256,21 +256,15 @@ from numdantic import NDArray, Shape
 
 # This does not cause a type checking error!
 x: NDArray[Shape[int, int], np.float32] = np.array([1, 2, 3], dtype=np.float32)
-```
-
-This is due to the fact that while all `numpy` functions have type annotations, they all type the array shape as `Any`. There is nothing much that can be done about this, until `numpy` changes its own typing system to not type all shapes as `Any`.
-
-Fortunately, there are two saving graces: firstly, dtypes are typed correctly, so the following code _will_ in fact cause type checkers to issue and error message:
-
-```Python
-import numpy as np
-from numdantic import NDArray, Shape
-
-# This does cause a type checking error
+# This does not cause a type checking error either!
 x: NDArray[Shape[int, int], np.float32] = np.array([[1, 2], [3, 4]], dtype=np.int32)
 ```
 
-Secondly, type checker _will_ detect mismatches in types further down the line, for example if you try to use an array typed with `numdantic` as a 2D array in a function that is typed with `numdantic` to only accept 3D arrays, a type checker will catch this mistake.
+This is due to the fact that `numpy` functions usually have type annotations with return types annotated such that the array shape is always `Any`, and their dtype typically is `np.generic`. Some `numpy` functions might have type annotations that accurately represent at least the dtype of their return value, but this is by no means guaranteed. There is nothing much that can be done about this, until `numpy` changes its own typing system to more accurately reflect the return values dtype and shape.
+
+Until then, you will either have to pay close attention to assignments, implement your own typing stubs for `numpy`, or write custom wrappers around `numpy` functions which you can then annotate appropriately, using `TypeVar`s and `TypeVarTuple`s.
+
+Fortunately, there is a saving grace: type checkers _will_ detect mismatches in types further down the line, for example if you try to use an array typed with `numdantic` as a 2D array in a function that is typed with `numdantic` to only accept 3D arrays, a type checker will catch this mistake.
 
 ### Mixing of named axes and generic axes
 
