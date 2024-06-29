@@ -113,7 +113,7 @@ def compare_types_mypy() -> None:
     table += "\n"
     table += "=" * (first_column_width - 1)
     table += " "
-    for i in range(len(type_names)):
+    for _ in range(len(type_names)):
         table += "=== "
     table += "\n"
 
