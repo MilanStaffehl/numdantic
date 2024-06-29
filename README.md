@@ -25,6 +25,7 @@ Typing support for [`numpy`](https://numpy.org/) arrays, compatible with [`pydan
   - [Wrong shapes or dtypes in assignments](#wrong-shapes-or-dtypes-in-assignments)
   - [Mixing of named axes and generic axes](#mixing-of-named-axes-and-generic-axes)
   - [Using Python built-ins as dtype](#using-python-built-ins-as-dtype)
+- [Tips & tricks](#tips-&-tricks)
 - [Alternatives](#alternatives)
 - [Contributing](#contributing)
   - [Code of conduct](#code-of-conduct)
@@ -315,6 +316,12 @@ For Python 3.12+ it is of course recommended to instead use the [new type alias 
 Currently, `numdantic` does not allow using Python built-in types as dtype for array annotations. This is due to how `numpy` types their `ndarray` type: as dtype, they only allow subtypes of `np.generic`. This is despite the fact that `numpy` has, for quite some time now, also accepted built-in types such as `int` or `float` as dtypes. The reasoning probably is that these built-in types are converted into proper `numpy` dtypes before an `ndarray` is constructed.
 
 In principle, this can be remedied by simply adding built-in types to the allowed dtypes in `numdantic` and then ignoring the complaints that type checkers will have, but this could lead to unforeseen consequences and sort of defeats the whole point of type checking. Therefore, `numdantic` bites the sour apple and accepts this limitation.
+
+## Tips & tricks
+
+Here are some miscellaneous tips and tricks for using `numdantic`:
+
+- Can't figure out which dtypes are compatible with which other dtypes? You can run the helper script `scripts/compatible_dtypes.py` to get a handy table of dtype compatibility! You can even pipe the output into a valid `.rst` file. The table shows what array dtypes (rows) can be assigned to what target dtypes (columns), and it also includes useful information on your platform which can give an insight into the implementation of `numpy` dtypes on your machine.
 
 ## Alternatives
 
