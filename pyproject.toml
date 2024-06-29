@@ -83,6 +83,7 @@ line_length = 79
 [tool.mypy]
 python_version = "3.11"
 strict = true
+plugins = "numpy.typing.mypy_plugin"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
