@@ -39,7 +39,7 @@ def temp_file(tmp_path: Path) -> Iterator[tuple[TextIO, Path]]:
     tmp_file = open(tmp_filepath, "w")
     yield tmp_file, tmp_filepath
     tmp_file.close()
-    # tmp_filepath.unlink()  # clean-up
+    tmp_filepath.unlink()  # clean-up
 
 
 def assert_type_check_passes(
