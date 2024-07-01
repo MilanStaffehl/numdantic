@@ -322,6 +322,7 @@ In principle, this can be remedied by simply adding built-in types to the allowe
 Here are some miscellaneous tips and tricks for using `numdantic`:
 
 - Can't figure out which dtypes are compatible with which other dtypes? You can run the helper script `scripts/compatible_dtypes.py` to get a handy table of dtype compatibility! You can even pipe the output into a valid `.rst` file. The table shows what array dtypes (rows) can be assigned to what target dtypes (columns), and it also includes useful information on your platform which can give an insight into the implementation of `numpy` dtypes on your machine.
+- To get the most accurate type checking possible, use the [`numpy` plug-in](https://pydoc.dev/numpy/latest/numpy.typing.mypy_plugin.html) for `mypy`. This plug-in will supply `mypy` with implementation details of the different dtypes on your machine and makes type checking of dtypes behave more predictably.
 
 ## Alternatives
 
@@ -363,7 +364,7 @@ Please note that there are some requirements for your code contributions:
   pre-commit install
   ```
 
-- All functions, methods, classes and exceptions must have a docstring, describing their use and all parameters Single-line docstrings are sufficient for tests, but not source code.
+- All functions, methods, classes and exceptions must have a docstring, describing their use and all parameters. Single-line docstrings are sufficient for tests, but not source code.
 
 - Your code must be covered by tests. `numdantic` differentiates between unit tests that cover only internal code and integration tests that also cover the integration with `numpy` and `pydantic`. Depending on your code, you may not be able to provide unit tests, since `numdantic` is strongly integrated with `pydantic` by design.
 
