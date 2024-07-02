@@ -23,6 +23,7 @@ from util import (
 # prepare parameters for parametrized test
 _DTYPE_TO_PARENTS_MAP = [(k, v) for k, v in NUMPY_SCALAR_TYPES.items()]
 _DTYPE_LIST = [INT_TYPES, UINT_TYPES, FLOATING_TYPES, COMPLEX_TYPES]
+_ALL_DTYPES = list(itertools.chain.from_iterable(_DTYPE_LIST))
 
 
 @pytest.mark.parametrize("dtype, parents", _DTYPE_TO_PARENTS_MAP)
@@ -60,12 +61,12 @@ def test_type_checking_dtypes_dtype_hierarchy(
 
 @pytest.mark.parametrize("dtype_list", _DTYPE_LIST)
 def test_type_checking_dtypes_interoperable_types(
-    dtype_list: dict[str, list[str]], temp_file: tuple[TextIO, Path]
+    dtype_list: list[str], temp_file: tuple[TextIO, Path]
 ) -> None:
     """Check interoperability of types of the same class"""
     # remove non-supported dtypes
-    supported_dtypes = dtype_list["C-type"]
-    for dtype in dtype_list["sized alias"]:
+    supported_dtypes: list[str] = []
+    for dtype in dtype_list:
         if hasattr(np, dtype):
             supported_dtypes.append(dtype)
 
@@ -76,13 +77,13 @@ def test_type_checking_dtypes_interoperable_types(
 
     # create a test string containing all possible combinations
     test_string = (
-        "from numdantic import NDArray, Shape\n" "import numpy as np\n\n"
+        "from numdantic import NDArray, Shape\nimport numpy as np\n\n"
     )
     for actual_type, target_type in dtype_combinations:
         # type-ignore combinations that must not pass
-        actual_type_ = np.dtype(getattr(np, actual_type)).itemsize
-        target_type_ = np.dtype(getattr(np, target_type)).itemsize
-        compatible = actual_type_ == target_type_
+        actual_type_size = np.dtype(getattr(np, actual_type)).itemsize
+        target_type_size = np.dtype(getattr(np, target_type)).itemsize
+        compatible = actual_type_size == target_type_size
         ignore = "  # type: ignore" if not compatible else ""
 
         # append to test string
@@ -98,4 +99,45 @@ def test_type_checking_dtypes_interoperable_types(
         test_string,
         *temp_file,
         fail_msg="Failed test for dtype interoperability",
+    )
+
+
+@pytest.mark.parametrize("dtype_list", _DTYPE_LIST)
+def test_type_checking_dtypes_incompatible_types(
+    dtype_list: list[str], temp_file: tuple[TextIO, Path]
+) -> None:
+    """Check that incompatible types raise type checking errors"""
+    # remove non-supported dtypes
+    actual_dtypes: list[str] = []
+    for dtype in dtype_list:
+        if hasattr(np, dtype):
+            actual_dtypes.append(dtype)
+
+    # find all target types that are not in the list of actual types
+    target_dtypes: list[str] = []
+    for dtype in _ALL_DTYPES:
+        if dtype not in actual_dtypes and hasattr(np, dtype):
+            target_dtypes.append(dtype)
+
+    # create combinations
+    dtype_combinations = itertools.product(target_dtypes, actual_dtypes)
+
+    # prepare test string
+    test_string = (
+        "from numdantic import NDArray, Shape\nimport numpy as np\n\n"
+    )
+    for actual_type, target_type in dtype_combinations:
+        # append to test string
+        random_id = random.randint(0, 999999)
+        test_string += (
+            f"x_{random_id}: NDArray[Shape[int], np.{actual_type}] = "
+            f"np.array([1], dtype=np.{actual_type})\n"
+            f"y_{random_id}: NDArray[Shape[int], np.{target_type}] = "
+            f"x_{random_id}  # type: ignore\n\n"
+        )
+    # run type check
+    assert_type_check_passes(
+        test_string,
+        *temp_file,
+        fail_msg="Failed test for incompatible dtypes; types were compatible",
     )

@@ -202,19 +202,48 @@ NUMPY_SCALAR_TYPES = {
 }
 
 # lists of explicit dtypes, sorted by implementation
-INT_TYPES = {
-    "C-type": ["byte", "short", "intc", "int_", "long", "longlong"],
-    "sized alias": ["int8", "int16", "int32", "int64"],
-}
-UINT_TYPES = {
-    "C-type": ["ubyte", "ushort", "uintc", "uint", "ulong", "ulonglong"],
-    "sized alias": ["uint8", "uint16", "uint32", "uint64"],
-}
-FLOATING_TYPES = {
-    "C-type": ["half", "single", "double", "longdouble"],
-    "sized alias": ["float16", "float32", "float64", "float96", "float128"],
-}
-COMPLEX_TYPES = {
-    "C-type": ["csingle", "cdouble", "clongdouble"],
-    "sized alias": ["complex64", "complex128", "complex192", "complex256"],
-}
+INT_TYPES = [
+    "byte",
+    "short",
+    "intc",
+    "int_",
+    "long",
+    "longlong",
+    "int8",
+    "int16",
+    "int32",
+    "int64",
+]
+UINT_TYPES = [
+    "ubyte",
+    "ushort",
+    "uintc",
+    "uint",
+    "ulong",
+    "ulonglong",
+    "sized alias",
+    "uint8",
+    "uint16",
+    "uint32",
+    "uint64",
+]
+FLOATING_TYPES = [
+    "half",
+    "single",
+    "double",
+    "longdouble",
+    "float16",
+    "float32",
+    "float64",
+    "float96",
+    "float128",
+]
+COMPLEX_TYPES = [
+    "csingle",
+    "cdouble",
+    "clongdouble",
+    "complex64",
+    "complex128",
+    "complex192",
+    "complex256",
+]
