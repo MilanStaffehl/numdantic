@@ -5,85 +5,27 @@ Tests for type checking dtypes in NDArray.
 from __future__ import annotations
 
 import itertools
-import os
 import random
-import subprocess
 from pathlib import Path
-from typing import Any, Iterator, TextIO
+from typing import TextIO
 
 import numpy as np
 import pytest
-from _numpy_salar_types import (
-    complex_dtypes,
-    floating_dtypes,
-    numpy_scalar_types,
-    signedinteger_dtypes,
-    unsignedinteger_dtypes,
+from util import (
+    COMPLEX_TYPES,
+    FLOATING_TYPES,
+    INT_TYPES,
+    NUMPY_SCALAR_TYPES,
+    UINT_TYPES,
+    assert_type_check_passes,
 )
 
-project_root = Path(__file__).resolve().parents[2]
+# prepare parameters for parametrized test
+_DTYPE_TO_PARENTS_MAP = [(k, v) for k, v in NUMPY_SCALAR_TYPES.items()]
+_DTYPE_LIST = [INT_TYPES, UINT_TYPES, FLOATING_TYPES, COMPLEX_TYPES]
 
 
-@pytest.fixture
-def temp_file(tmp_path: Path) -> Iterator[tuple[TextIO, Path]]:
-    """
-    Set-up and tear-down for a temporary file.
-
-    Python temporary files are incredibly brittle and hard-to-use in any
-    reliable fashion. On Windows, they cannot be opened a second time,
-    and therefore cannot be used for the purpose of these tests that
-    need to write to the file and then allow mypy to read from them.
-    Therefore, we create "actual" files.
-    """
-    tmp_filepath = tmp_path / "mock_file.py"
-    tmp_file = open(tmp_filepath, "w")
-    yield tmp_file, tmp_filepath
-    tmp_file.close()
-    tmp_filepath.unlink()  # clean-up
-
-
-def assert_type_check_passes(
-    test_string: str,
-    temp_file: TextIO,
-    temp_file_path: Path,
-    fail_msg: str = "Type check test failed",
-) -> subprocess.CompletedProcess[Any]:
-    """
-    Assert that the given string passes the type check. Return output.
-
-    :param test_string: File contents to check. Must be formatted as a
-        syntactically valid Python file.
-    :param temp_file: Opened file-like object to write the test string
-        to and to feed to type checker.
-    :param temp_file_path: The path of the test file.
-    :param fail_msg: A failure message to display should the test fail.
-    :return:
-    """
-    # write test contents to file
-    temp_file.write(test_string)
-    temp_file.close()
-
-    output = subprocess.run(
-        f"mypy --config-file pyproject.toml {str(temp_file_path)}",
-        capture_output=True,
-        env=os.environ,
-        cwd=project_root,  # use pyproject.toml as config file
-        shell=True,
-    )
-    if output.returncode != 0:
-        pytest.fail(
-            f"{fail_msg}:"
-            f"\nstdout:\n{output.stdout.decode('utf-8')}"
-            f"\nstderr:\n{output.stderr.decode('utf-8')}\n"
-        )
-    return output
-
-
-# prepare parameter for parametrized test
-_dtype_parents_map = [(k, v) for k, v in numpy_scalar_types.items()]
-
-
-@pytest.mark.parametrize("dtype, parents", _dtype_parents_map)
+@pytest.mark.parametrize("dtype, parents", _DTYPE_TO_PARENTS_MAP)
 def test_type_checking_dtypes_dtype_hierarchy(
     dtype: str, parents: list[str], temp_file: tuple[TextIO, Path]
 ) -> None:
@@ -94,7 +36,7 @@ def test_type_checking_dtypes_dtype_hierarchy(
     if not hasattr(np, dtype.removesuffix("[Any]").removesuffix("[Any, Any]")):
         pytest.skip(f"System does not support dtype {dtype}.")
 
-    # create atest file
+    # create a test file
     test_string = (
         "from typing import Any\n"
         "from numdantic import NDArray, Shape\n"
@@ -116,15 +58,7 @@ def test_type_checking_dtypes_dtype_hierarchy(
     )
 
 
-_dtype_list = [
-    signedinteger_dtypes,
-    unsignedinteger_dtypes,
-    floating_dtypes,
-    complex_dtypes,
-]
-
-
-@pytest.mark.parametrize("dtype_list", _dtype_list)
+@pytest.mark.parametrize("dtype_list", _DTYPE_LIST)
 def test_type_checking_dtypes_interoperable_types(
     dtype_list: dict[str, list[str]], temp_file: tuple[TextIO, Path]
 ) -> None:
