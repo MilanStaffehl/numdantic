@@ -1,9 +1,58 @@
 """
-Helper variables containing info on numpy scalar dtypes.
+Helper variables containing info on numpy scalar dtypes, and helper functions.
 """
 
+from __future__ import annotations
+
+import os
+import subprocess
+from pathlib import Path
+from typing import Any, TextIO
+
+import pytest
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def assert_type_check_passes(
+    test_string: str,
+    temp_file: TextIO,
+    temp_file_path: Path,
+    fail_msg: str = "Type check test failed",
+) -> subprocess.CompletedProcess[Any]:
+    """
+    Assert that the given string passes the type check. Return output.
+
+    :param test_string: File contents to check. Must be formatted as a
+        syntactically valid Python file.
+    :param temp_file: Opened file-like object to write the test string
+        to and to feed to type checker.
+    :param temp_file_path: The path of the test file.
+    :param fail_msg: A failure message to display should the test fail.
+    :return:
+    """
+    # write test contents to file
+    temp_file.write(test_string)
+    temp_file.close()
+
+    output = subprocess.run(
+        f"mypy --config-file pyproject.toml {str(temp_file_path)}",
+        capture_output=True,
+        env=os.environ,
+        cwd=_PROJECT_ROOT,  # use pyproject.toml as config file
+        shell=True,
+    )
+    if output.returncode != 0:
+        pytest.fail(
+            f"{fail_msg}:"
+            f"\nstdout:\n{output.stdout.decode('utf-8')}"
+            f"\nstderr:\n{output.stderr.decode('utf-8')}\n"
+        )
+    return output
+
+
 # Mapping of dtypes to their parent dtypes
-numpy_scalar_types = {
+NUMPY_SCALAR_TYPES = {
     # generic types
     "generic": [],
     "number[Any]": ["generic"],
@@ -153,19 +202,19 @@ numpy_scalar_types = {
 }
 
 # lists of explicit dtypes, sorted by implementation
-signedinteger_dtypes = {
+INT_TYPES = {
     "C-type": ["byte", "short", "intc", "int_", "long", "longlong"],
     "sized alias": ["int8", "int16", "int32", "int64"],
 }
-unsignedinteger_dtypes = {
+UINT_TYPES = {
     "C-type": ["ubyte", "ushort", "uintc", "uint", "ulong", "ulonglong"],
     "sized alias": ["uint8", "uint16", "uint32", "uint64"],
 }
-floating_dtypes = {
+FLOATING_TYPES = {
     "C-type": ["half", "single", "double", "longdouble"],
     "sized alias": ["float16", "float32", "float64", "float96", "float128"],
 }
-complex_dtypes = {
+COMPLEX_TYPES = {
     "C-type": ["csingle", "cdouble", "clongdouble"],
     "sized alias": ["complex64", "complex128", "complex192", "complex256"],
 }
