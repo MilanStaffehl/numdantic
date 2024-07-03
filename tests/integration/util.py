@@ -52,7 +52,7 @@ def assert_type_check_passes(
 
 
 # Mapping of dtypes to their parent dtypes
-NUMPY_SCALAR_TYPES = {
+NP_SCALAR_TYPES_PARENTS = {
     # generic types
     "generic": [],
     "number[Any]": ["generic"],
