@@ -15,13 +15,13 @@ from util import (
     COMPLEX_TYPES,
     FLOATING_TYPES,
     INT_TYPES,
-    NUMPY_SCALAR_TYPES,
+    NP_SCALAR_TYPES_PARENTS,
     UINT_TYPES,
     assert_type_check_passes,
 )
 
 # prepare parameters for parametrized test
-_DTYPE_TO_PARENTS_MAP = [(k, v) for k, v in NUMPY_SCALAR_TYPES.items()]
+_DTYPE_TO_PARENTS_MAP = [(k, v) for k, v in NP_SCALAR_TYPES_PARENTS.items()]
 _DTYPE_LIST = [INT_TYPES, UINT_TYPES, FLOATING_TYPES, COMPLEX_TYPES]
 _ALL_DTYPES = list(itertools.chain.from_iterable(_DTYPE_LIST))
 
@@ -140,4 +140,99 @@ def test_type_checking_dtypes_incompatible_types(
         test_string,
         *temp_file,
         fail_msg="Failed test for incompatible dtypes; types were compatible",
+    )
+
+
+# Four out of the eight generic dtypes behave contravariantly, so we must
+# split the test for variance into two categories:
+_COVARIANT_GENERICS = [
+    ("generic", INT_TYPES + UINT_TYPES + FLOATING_TYPES + COMPLEX_TYPES),
+    ("number[Any]", INT_TYPES + UINT_TYPES + FLOATING_TYPES + COMPLEX_TYPES),
+    ("integer[Any]", INT_TYPES + UINT_TYPES),
+    ("inexact[Any]", FLOATING_TYPES + COMPLEX_TYPES),
+]
+_CONTRAVARIANT_GENERICS = [
+    ("signedinteger[Any]", INT_TYPES),
+    ("unsignedinteger[Any]", UINT_TYPES),
+    ("floating[Any]", FLOATING_TYPES),
+    ("complexfloat[Any, Any]", COMPLEX_TYPES),
+]
+
+
+@pytest.mark.parametrize("generic_dtype, target_dtypes", _COVARIANT_GENERICS)
+def test_type_checking_dtypes_generics_covariant(
+    generic_dtype: str,
+    target_dtypes: list[str],
+    temp_file: tuple[TextIO, Path],
+) -> None:
+    """Generics should behave covariantly (and these actually do)"""
+    supported_dtypes = []
+    for dtype in target_dtypes:
+        if hasattr(np, dtype):
+            supported_dtypes.append(dtype)
+
+    # create a test string
+    test_string = (
+        "from typing import Any\n"
+        "from numdantic import NDArray, Shape\n"
+        "import numpy as np\n\n"
+    )
+    for target_dtype in supported_dtypes:
+        random_id = random.randint(0, 999999)
+        test_string += (
+            f"x_{random_id}: NDArray[Shape[int], np.{generic_dtype}] = "
+            f"np.array([1], dtype=np.{generic_dtype})\n"
+            f"y_{random_id}: NDArray[Shape[int], np.{target_dtype}] = "
+            f"x_{random_id}  # type: ignore\n\n"
+        )
+
+    # run type check
+    assert_type_check_passes(
+        test_string,
+        *temp_file,
+        fail_msg=(
+            f"Failed test for {generic_dtype}: type unexpectedly behaved "
+            f"contravariantly."
+        ),
+    )
+
+
+@pytest.mark.xfail(reason="dtypes behave contravariantly.", strict=True)
+@pytest.mark.parametrize(
+    "generic_dtype, target_dtypes", _CONTRAVARIANT_GENERICS
+)
+def test_type_checking_dtypes_generics_contravariant(
+    generic_dtype: str,
+    target_dtypes: list[str],
+    temp_file: tuple[TextIO, Path],
+) -> None:
+    """Generics should behave covariantly (but these do not!)"""
+    supported_dtypes = []
+    for dtype in target_dtypes:
+        if hasattr(np, dtype):
+            supported_dtypes.append(dtype)
+
+    # create a test string
+    test_string = (
+        "from typing import Any\n"
+        "from numdantic import NDArray, Shape\n"
+        "import numpy as np\n\n"
+    )
+    for target_dtype in supported_dtypes:
+        random_id = random.randint(0, 999999)
+        test_string += (
+            f"x_{random_id}: NDArray[Shape[int], np.{generic_dtype}] = "
+            f"np.array([1], dtype=np.{generic_dtype})\n"
+            f"y_{random_id}: NDArray[Shape[int], np.{target_dtype}] = "
+            f"x_{random_id}  # type: ignore\n\n"
+        )
+
+    # run type check
+    assert_type_check_passes(
+        test_string,
+        *temp_file,
+        fail_msg=(
+            f"Failed test for {generic_dtype}: type unexpectedly behaved "
+            f"contravariantly."
+        ),
     )
