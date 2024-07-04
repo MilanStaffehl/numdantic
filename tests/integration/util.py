@@ -1,3 +1,4 @@
+# Copyright (c) 2024 Milan Staffehl - subject to the MIT license.
 """
 Helper variables containing info on numpy scalar dtypes, and helper functions.
 """

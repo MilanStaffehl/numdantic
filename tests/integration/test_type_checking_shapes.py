@@ -1,3 +1,4 @@
+# Copyright (c) 2024 Milan Staffehl - subject to the MIT license.
 """
 Tests for type checking shapes of NDArray.
 """

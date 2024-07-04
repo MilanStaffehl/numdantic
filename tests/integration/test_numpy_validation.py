@@ -1,3 +1,4 @@
+# Copyright (c) 2024 Milan Staffehl - subject to the MIT license.
 """
 Test the integration between the custom numpy validator and pydantic.
 """
