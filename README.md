@@ -197,25 +197,29 @@ SomeAxis = NewType("SomeAxis", int)
 x: NDArray[Shape[int, SomeAxis, L[2], SomeAxis], np.int32]
 ```
 
-### Broader dtypes
+### Generic scalar types
 
-Often, it is not crucial what precision your arrays dtype has. You might not care if your array has dtype `int32` or `int64`, just that it is an integer. Or perhaps you do not care about the dtype at all. For this purpose, `numdantic` allows you to specify broader dtypes in your annotations:
+Often, it is not crucial what precision your arrays dtype has. You might not care if your array has dtype `int32` or `int64`, just that it is an integer. Or perhaps you do not care about the dtype at all. For this purpose, `numdantic` allows you to specify broader dtypes in your annotations, using the generic scalar types provided by `numpy`:
 
 ```Python
 import numpy as np
 from numdantic import NDArray, Shape
+from typing import Any
 
 # an array that will accept any number
-any_number: NDArray[Shape[int, int], np.number]
+any_number: NDArray[Shape[int, int], np.number[Any]]
 
 # an array that will accept any positive integer
-pos_ints: NDArray[Shape[int, int], np.unsignedinteger]
+pos_ints: NDArray[Shape[int, int], np.unsignedinteger[Any]]
 ```
 
 See the `numpy` documentation for [scalar types](https://numpy.org/doc/stable/reference/arrays.scalars.html#built-in-scalar-types) for an overview over what scalar types `numpy` offers.
 
+> [!IMPORTANT]
+> Note that as generics, these scalar types must be supplied with a type parameter. This type parameter specifies the size of the type (for example 32 bit vs 64 bit). Type checkers actually convert all scalar types to one of these generics. For example, `numpy.int64` is converted into `numpy.signedinteger[numpy._typing._64Bit]` during type checking. In order to actually receive a type that is agnostic to the size of the dtype, it is required to use `Any` as type parameter - hence the use of `Any` in the example above.
+
 > [!NOTE]
-> Depending on your version of `numpy`, many of these broader scalar types might be deprecated. You will get a corresponding runtime waring if you use them. You can either suppress this warning, or choose another appropriate scalar dtype.
+> Depending on your version of `numpy`, some of these generic scalar types might be deprecated. You will get a corresponding runtime warning if you use them to *instantiate* an array or when you use them in a `pydantic` model field. You can either suppress this warning, or choose another appropriate scalar dtype. In type annotations, they should all be fine and should cause no problems.
 
 ### Behavior in lax vs. strict mode
 
