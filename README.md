@@ -18,7 +18,7 @@ Typing support for [`numpy`](https://numpy.org/) arrays, compatible with [`pydan
   - [Axes of unspecified length](#axes-of-unspecified-length)
   - [Axes of specific length](#axes-of-specific-length)
   - [Named axes](#named-axes)
-  - [Broader dtypes](#broader-dtypes)
+  - [Generic scalar types](#generic-scalar-types)
   - [Behavior in lax vs. strict mode](#behavior-in-lax-vs-strict-mode)
   - [Arrays from sequences](#arrays-from-sequences)
 - [Limitations](#limitations)
@@ -219,7 +219,7 @@ See the `numpy` documentation for [scalar types](https://numpy.org/doc/stable/re
 > Note that as generics, these scalar types must be supplied with a type parameter. This type parameter specifies the size of the type (for example 32 bit vs 64 bit). Type checkers actually convert all scalar types to one of these generics. For example, `numpy.int64` is converted into `numpy.signedinteger[numpy._typing._64Bit]` during type checking. In order to actually receive a type that is agnostic to the size of the dtype, it is required to use `Any` as type parameter - hence the use of `Any` in the example above.
 
 > [!NOTE]
-> Depending on your version of `numpy`, some of these generic scalar types might be deprecated. You will get a corresponding runtime warning if you use them to *instantiate* an array or when you use them in a `pydantic` model field. You can either suppress this warning, or choose another appropriate scalar dtype. In type annotations, they should all be fine and should cause no problems.
+> Depending on your version of `numpy`, using these generic scalar types to create arrays is deprecated. You will get a corresponding runtime warning if you use them to *instantiate* an array or when you use them in a `pydantic` model field. You can either suppress this warning, or choose another appropriate scalar dtype. The latter is recommended. In type annotations, they should all be fine and should cause no problems.
 
 ### Behavior in lax vs. strict mode
 
