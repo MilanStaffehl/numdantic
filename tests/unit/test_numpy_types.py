@@ -1,3 +1,4 @@
+# Copyright (c) 2024 Milan Staffehl - subject to the MIT license.
 """
 Unit tests for the _numpy_types.py module.
 """
