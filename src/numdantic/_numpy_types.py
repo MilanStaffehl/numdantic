@@ -436,7 +436,7 @@ def _get_cast_function(
             return np.array(x, dtype=real_type)
         except ValueError as exc:
             raise PydanticCustomError(
-                "inhomogeneous_sequence",
+                "from_sequence",
                 "Received sequence has inhomogeneous part or invalid element "
                 "types. Original exception:\n{exc}",
                 {"exc": str(exc)},
