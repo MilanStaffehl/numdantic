@@ -25,7 +25,7 @@ Typing support for [`numpy`](https://numpy.org/) arrays, compatible with [`pydan
   - [Wrong shapes or dtypes in assignments](#wrong-shapes-or-dtypes-in-assignments)
   - [Mixing of named axes and generic axes](#mixing-of-named-axes-and-generic-axes)
   - [Using Python built-ins as dtype](#using-python-built-ins-as-dtype)
-- [Tips & tricks](#tips-&-tricks)
+- [Tips & tricks](#tips--tricks)
 - [Alternatives](#alternatives)
 - [Contributing](#contributing)
   - [Code of conduct](#code-of-conduct)
@@ -126,7 +126,11 @@ from numdantic import NDArray, Shape
 widescreen_image: NDArray[Shape[L[1080], L[720], L[4]], np.int64]
 ```
 
-Type checkers will accept this notation as integer literals are valid subtypes of `int`. Moreover, when used inside of a `pydantic` base model, this will ensure that the axes of the array are checked for their length; if any axis has a length that does not match its annotation, a `ValidationError` will be raised accordingly.
+Type checkers will accept this notation. Moreover, when used inside of a `pydantic` base model, this will ensure that the axes of the array are checked for their length; if any axis has a length that does not match its annotation, a `ValidationError` will be raised accordingly.
+
+> [!NOTE]
+>
+> There is one significant caveat to this approach: you cannot mix unspecific axes and axes of specific length, i.e. attempting to assign `widescreen_image` to a variable typed to have shape `Shape[int, int, int]` does not work and will cause type checkers to report an error. Once you opt for literals in your shapes, you will have to commit to them. Learn more about this limitation and why it occurs in the section about [Limitations](#limitations).
 
 ### Named axes
 
@@ -267,7 +271,7 @@ Until then, you will either have to pay close attention to assignments, implemen
 
 Fortunately, there is a saving grace: type checkers _will_ detect mismatches in types further down the line, for example if you try to use an array typed with `numdantic` as a 2D array in a function that is typed with `numdantic` to only accept 3D arrays, a type checker will catch this mistake.
 
-### Mixing of named axes and generic axes
+### Mixing of named axes, literal axes and generic axes
 
 It is not possible to use named axes created with `NewType` in places that are typed using `int`:
 
@@ -292,6 +296,8 @@ def transpose_image(
 transpose_image(image)
 ```
 
+Similarly, you cannot mix shapes with literal integers such as `Shape[Literal[2], Literal[2]]` with named axes or generic axes typed with `int`. All these combinations will cause your type checker to issue an error.
+
 This happens because the `TypeVarTuple` used to make shapes work within `numdantic` currently has no way of specifying variance; it is invariant in all its entries. As a result, type checkers are not able to accept subtypes of `int` inside of a `Shape` to be valid in place of actual `int` types.
 
 If you wish to enjoy the documentation benefit of named axes and can forgo the benefit of base models checking for axes of the same name having the same length, it is recommended to use type aliases instead:
@@ -310,6 +316,14 @@ image: NDArray[Shape[width, height], np.int64]
 ```
 
 For Python 3.12+ it is of course recommended to instead use the [new type alias syntax](https://peps.python.org/pep-0695/) instead.
+
+For axes of specific length, you can of course create similar type aliases of specific literals:
+
+```PYthon
+Width720: TypeAlias = Literal[720]
+```
+
+In the future, `numdantic` might try to solve this issue, but whether that is even feasible is yet to be determined.
 
 ### Using Python built-ins as dtype
 
