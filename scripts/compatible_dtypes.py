@@ -30,6 +30,8 @@ from pathlib import Path
 
 import numpy as np
 
+import numdantic
+
 project_root = Path(__file__).resolve().parents[1]
 
 
@@ -166,7 +168,8 @@ def compare_types_mypy() -> None:
     table += (
         f"\nTested on {platform.platform()} {platform.architecture()[0]} "
         f"({platform.machine()}) with Python {platform.python_version()}. "
-        f"Used versions: numpy: {np.__version__}."
+        f"Used versions: numpy: {np.__version__}, numdantic: "
+        f"{numdantic.__version__}."
     )
 
     # print the result

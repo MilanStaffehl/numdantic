@@ -89,6 +89,6 @@ plugins = "numpy.typing.mypy_plugin"
 name = "cz_conventional_commits"
 version_scheme = "pep440"
 version_provider = "pep621"
-version_files = ["pyproject.toml:version"]
+version_files = ["pyproject.toml:version", "src/numdantic/__init__.py:__version__"]
 update_changelog_on_bump = false
 major_version_zero = true
