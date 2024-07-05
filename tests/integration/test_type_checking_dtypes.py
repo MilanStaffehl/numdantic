@@ -6,7 +6,6 @@ Tests for type checking dtypes in NDArray.
 from __future__ import annotations
 
 import itertools
-import random
 from pathlib import Path
 from typing import TextIO
 
@@ -44,13 +43,12 @@ def test_type_checking_dtypes_dtype_hierarchy(
         "from numdantic import NDArray, Shape\n"
         "import numpy as np\n\n"
     )
-    for parent_dtype in parents:
-        random_id = random.randint(0, 999999)
+    for i, parent_dtype in enumerate(parents):
         test_string += (
-            f"x_{random_id}: NDArray[Shape[int], np.{dtype}] = "
+            f"x_{i:02d}: NDArray[Shape[int], np.{dtype}] = "
             f"np.array([1], dtype=np.{dtype})\n"
-            f"y_{random_id}: NDArray[Shape[int], np.{parent_dtype}] = "
-            f"x_{random_id}\n\n"
+            f"y_{i:02d}: NDArray[Shape[int], np.{parent_dtype}] = "
+            f"x_{i:02d}\n\n"
         )
     # run type check and fail if it throws errors
     assert_type_check_passes(
@@ -80,7 +78,9 @@ def test_type_checking_dtypes_interoperable_types(
     test_string = (
         "from numdantic import NDArray, Shape\nimport numpy as np\n\n"
     )
-    for actual_type, target_type in dtype_combinations:
+    for i, type_tuple in enumerate(dtype_combinations):
+        actual_type = type_tuple[0]
+        target_type = type_tuple[1]
         # type-ignore combinations that must not pass
         actual_type_size = np.dtype(getattr(np, actual_type)).itemsize
         target_type_size = np.dtype(getattr(np, target_type)).itemsize
@@ -88,12 +88,11 @@ def test_type_checking_dtypes_interoperable_types(
         ignore = "  # type: ignore" if not compatible else ""
 
         # append to test string
-        random_id = random.randint(0, 999999)
         test_string += (
-            f"x_{random_id}: NDArray[Shape[int], np.{actual_type}] = "
+            f"x_{i:02d}: NDArray[Shape[int], np.{actual_type}] = "
             f"np.array([1], dtype=np.{actual_type})\n"
-            f"y_{random_id}: NDArray[Shape[int], np.{target_type}] = "
-            f"x_{random_id}{ignore}\n\n"
+            f"y_{i:02d}: NDArray[Shape[int], np.{target_type}] = "
+            f"x_{i:02d}{ignore}\n\n"
         )
     # run type check
     assert_type_check_passes(
@@ -127,14 +126,15 @@ def test_type_checking_dtypes_incompatible_types(
     test_string = (
         "from numdantic import NDArray, Shape\nimport numpy as np\n\n"
     )
-    for actual_type, target_type in dtype_combinations:
+    for i, type_tuple in enumerate(dtype_combinations):
+        actual_type = type_tuple[0]
+        target_type = type_tuple[1]
         # append to test string
-        random_id = random.randint(0, 999999)
         test_string += (
-            f"x_{random_id}: NDArray[Shape[int], np.{actual_type}] = "
+            f"x_{i:02d}: NDArray[Shape[int], np.{actual_type}] = "
             f"np.array([1], dtype=np.{actual_type})\n"
-            f"y_{random_id}: NDArray[Shape[int], np.{target_type}] = "
-            f"x_{random_id}  # type: ignore\n\n"
+            f"y_{i:02d}: NDArray[Shape[int], np.{target_type}] = "
+            f"x_{i:02d}  # type: ignore\n\n"
         )
     # run type check
     assert_type_check_passes(
@@ -178,13 +178,12 @@ def test_type_checking_dtypes_generics_covariant(
         "from numdantic import NDArray, Shape\n"
         "import numpy as np\n\n"
     )
-    for target_dtype in supported_dtypes:
-        random_id = random.randint(0, 999999)
+    for i, target_dtype in enumerate(supported_dtypes):
         test_string += (
-            f"x_{random_id}: NDArray[Shape[int], np.{generic_dtype}] = "
+            f"x_{i:02d}: NDArray[Shape[int], np.{generic_dtype}] = "
             f"np.array([1], dtype=np.{generic_dtype})\n"
-            f"y_{random_id}: NDArray[Shape[int], np.{target_dtype}] = "
-            f"x_{random_id}  # type: ignore\n\n"
+            f"y_{i:02d}: NDArray[Shape[int], np.{target_dtype}] = "
+            f"x_{i:02d}  # type: ignore\n\n"
         )
 
     # run type check
@@ -219,13 +218,12 @@ def test_type_checking_dtypes_generics_contravariant(
         "from numdantic import NDArray, Shape\n"
         "import numpy as np\n\n"
     )
-    for target_dtype in supported_dtypes:
-        random_id = random.randint(0, 999999)
+    for i, target_dtype in enumerate(supported_dtypes):
         test_string += (
-            f"x_{random_id}: NDArray[Shape[int], np.{generic_dtype}] = "
+            f"x_{i:02d}: NDArray[Shape[int], np.{generic_dtype}] = "
             f"np.array([1], dtype=np.{generic_dtype})\n"
-            f"y_{random_id}: NDArray[Shape[int], np.{target_dtype}] = "
-            f"x_{random_id}  # type: ignore\n\n"
+            f"y_{i:02d}: NDArray[Shape[int], np.{target_dtype}] = "
+            f"x_{i:02d}  # type: ignore\n\n"
         )
 
     # run type check
