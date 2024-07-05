@@ -3,7 +3,10 @@ name: Full test suite
 on:
   push:
     tags:
-      - "[0-9]+.[0-9]+.[0-9]+(?:(?:rc|a|b)[0-9]+)?"  # all SemVer releases
+      - "[0-9]+.[0-9]+.[0-9]+"  # full releases
+      - "[0-9]+.[0-9]+.[0-9]+a[0-9]+"  # alpha releases
+      - "[0-9]+.[0-9]+.[0-9]+b[0-9]+"  # beta releases
+      - "[0-9]+.[0-9]+.[0-9]+rc[0-9]+"  # release candidates
 
 jobs:
 
