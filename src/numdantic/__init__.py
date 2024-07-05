@@ -2,4 +2,4 @@
 from ._numpy_types import NDArray, Shape, ShapeLike
 
 __all__ = ["Shape", "ShapeLike", "NDArray"]
-__version__ = "0.1.0a0"
+__version__ = "0.1.0a1"
