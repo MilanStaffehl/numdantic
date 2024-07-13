@@ -1,6 +1,6 @@
 # Copyright (c) 2024 Milan Staffehl - subject to the MIT license.
 """
-Unit tests for the _numpy_types.py module.
+Unit tests for the _numpy_validation.py module.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ import numpy.typing
 import pytest
 from pydantic_core import PydanticCustomError, ValidationError
 
-from numdantic import _numpy_types
+from numdantic import _numpy_validation
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture, MockType
@@ -36,7 +36,9 @@ def patch_pydantic_error(mocker: MockerFixture) -> Iterator[MockType]:
         return err_type, msg
 
     # patch where the class is actually called
-    mock_error = mocker.patch("numdantic._numpy_types.PydanticCustomError")
+    mock_error = mocker.patch(
+        "numdantic._numpy_validation.PydanticCustomError"
+    )
     mock_error.side_effect = return_mock_error
     yield mock_error
 
@@ -49,7 +51,7 @@ def test_validate_array_shape_valid_shape_generic(
     test_array = np.array([[1, 2], [3, 4]])
     expected_shape = ("int", "int")
     error_list = []  # type: ignore
-    output = _numpy_types._validate_array_shape(
+    output = _numpy_validation._validate_array_shape(
         test_array, expected_shape, error_list
     )
     # check output and that no error was reported
@@ -66,7 +68,7 @@ def test_validate_array_shape_invalid_shape_generic(
     expected_shape = ("int", "int")
     error_list = []  # type: ignore
     # check that an error is generated
-    output = _numpy_types._validate_array_shape(
+    output = _numpy_validation._validate_array_shape(
         test_array, expected_shape, error_list
     )
     np.testing.assert_equal(test_array, output)  # array unchanged
@@ -90,7 +92,7 @@ def test_validate_array_shape_valid_shape_literal(
     test_array = np.array([[1, 2], [3, 4]])
     expected_shape = (2, 2)
     error_list = []  # type: ignore
-    output = _numpy_types._validate_array_shape(
+    output = _numpy_validation._validate_array_shape(
         test_array, expected_shape, error_list
     )
     # check output and that no error was reported
@@ -107,7 +109,7 @@ def test_validate_array_shape_invalid_shape_literal_dims(
     expected_shape = (2, 2)
     error_list = []  # type: ignore
     # check that two errors are generated: one for dims, one for axis len
-    output = _numpy_types._validate_array_shape(
+    output = _numpy_validation._validate_array_shape(
         test_array, expected_shape, error_list
     )
     np.testing.assert_equal(test_array, output)  # array unchanged
@@ -146,7 +148,7 @@ def test_validate_array_shape_invalid_shape_literal_len(
     expected_shape = (2, 2)
     error_list = []  # type: ignore
     # check that only one error due to axis length is generated
-    output = _numpy_types._validate_array_shape(
+    output = _numpy_validation._validate_array_shape(
         test_array, expected_shape, error_list
     )
     np.testing.assert_equal(test_array, output)  # array unchanged
@@ -170,7 +172,7 @@ def test_validate_array_shape_valid_shape_named_axes(
     test_array = np.array([[1, 2], [3, 4]])
     expected_shape = ("AxisLen", "AxisLen")
     error_list = []  # type: ignore
-    output = _numpy_types._validate_array_shape(
+    output = _numpy_validation._validate_array_shape(
         test_array, expected_shape, error_list
     )
     np.testing.assert_equal(test_array, output)
@@ -185,7 +187,7 @@ def test_validate_array_shape_invalid_shape_named_axes(
     test_array = np.array([[1, 2, 3], [4, 5, 6]])
     expected_shape = ("AxisLen", "AxisLen")
     error_list = []  # type: ignore
-    output = _numpy_types._validate_array_shape(
+    output = _numpy_validation._validate_array_shape(
         test_array, expected_shape, error_list
     )
     np.testing.assert_equal(test_array, output)
@@ -226,7 +228,7 @@ def test_validate_array_shape_valid_shape_named_axes_different_names(
     for msg, test_array in test_arrays.items():
         with subtests.test(msg=msg):
             error_list = []  # type: ignore
-            output = _numpy_types._validate_array_shape(
+            output = _numpy_validation._validate_array_shape(
                 test_array, expected_shape, error_list
             )
             # check output and that no error was reported
@@ -246,7 +248,7 @@ def test_validate_array_dtype_valid_dtype(
         with subtests.test(msg=f"strict mode: {validation_mode}"):
             test_array = np.array([[1, 2], [3, 4]], dtype=np.uint64)
             error_list = []  # type: ignore
-            output = _numpy_types._validate_array_dtype(
+            output = _numpy_validation._validate_array_dtype(
                 test_array, expected_dtype, error_list, validation_mode
             )
             np.testing.assert_equal(test_array, output)
@@ -263,7 +265,7 @@ def test_validate_array_dtype_invalid_dtype_specific_dtype_no_cast(
 
     # lax mode: types cannot be cast
     error_list = []  # type: ignore
-    output = _numpy_types._validate_array_dtype(
+    output = _numpy_validation._validate_array_dtype(
         test_array,
         expected_dtype,  # type: ignore[arg-type]  # issue #7
         error_list,
@@ -284,7 +286,7 @@ def test_validate_array_dtype_invalid_dtype_specific_dtype_no_cast(
 
     # strict mode: types cannot be cast
     error_list = []
-    output = _numpy_types._validate_array_dtype(
+    output = _numpy_validation._validate_array_dtype(
         test_array,
         expected_dtype,  # type: ignore[arg-type]  # issue #7
         error_list,
@@ -312,7 +314,7 @@ def test_validate_array_dtype_invalid_dtype_specific_dtype_can_cast(
 
     # lax mode: types cannot be cast
     error_list = []  # type: ignore
-    output = _numpy_types._validate_array_dtype(
+    output = _numpy_validation._validate_array_dtype(
         test_array,
         expected_dtype,  # type: ignore[arg-type]  # issue #7
         error_list,
@@ -328,7 +330,7 @@ def test_validate_array_dtype_invalid_dtype_specific_dtype_can_cast(
 def cast_function() -> Iterator[CastFuncType]:
     """Return the cast function retrievable from _get_cast_function"""
     # reason for type ignore: issue #7
-    yield _numpy_types._get_cast_function(np.int64)  # type: ignore[arg-type]
+    yield _numpy_validation._get_cast_function(np.int64)  # type: ignore[arg-type]
 
 
 def test_cast_to_array_from_array(cast_function: CastFuncType) -> None:
@@ -400,7 +402,9 @@ def test_raise_validation_error_single_error() -> None:
     input_array = np.array([1, 2], dtype=np.int32)
     errors = [PydanticCustomError("err_type", "error_message")]
     with pytest.raises(ValidationError) as excinfo:
-        _numpy_types._raise_validation_error(input_array, errors, "model name")
+        _numpy_validation._raise_validation_error(
+            input_array, errors, "model name"
+        )
     expected_msg = (
         "1 validation error for model name\n  error_message [type=err_type, "
         "input_value=array([1, 2], dtype=int32), input_type=ndarray]"
@@ -416,7 +420,9 @@ def test_raise_validation_error_two_errors() -> None:
         PydanticCustomError("err_type_2", "error_message_2"),
     ]
     with pytest.raises(ValidationError) as excinfo:
-        _numpy_types._raise_validation_error(input_array, errors, "model name")
+        _numpy_validation._raise_validation_error(
+            input_array, errors, "model name"
+        )
     expected_msg = (
         "2 validation errors for model name\n  error_message_1 "
         "[type=err_type_1, input_value=array([1, 2], dtype=int32), "
@@ -431,7 +437,7 @@ def test_raise_validation_error_no_model_name() -> None:
     input_array = np.array([1, 2], dtype=np.int32)
     errors = [PydanticCustomError("err_type", "error_message")]
     with pytest.raises(ValidationError) as excinfo:
-        _numpy_types._raise_validation_error(input_array, errors, None)
+        _numpy_validation._raise_validation_error(input_array, errors, None)
     expected_msg = (
         "1 validation error for NDArray validation\n  error_message "
         "[type=err_type, input_value=array([1, 2], dtype=int32), "

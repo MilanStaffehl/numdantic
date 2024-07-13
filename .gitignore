@@ -154,3 +154,7 @@ cython_debug/
 
 # PyCharm
 .idea/
+
+# Temporary test file
+**/*temp.py
+**/*tmp.py

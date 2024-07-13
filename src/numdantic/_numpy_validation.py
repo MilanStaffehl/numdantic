@@ -1,6 +1,6 @@
 # Copyright (c) 2024 Milan Staffehl - subject to the MIT license.
 """
-Type definitions and core schema for numpy array typing and validation.
+Pydantic core schema for numpy array validation.
 """
 
 from __future__ import annotations
@@ -8,14 +8,11 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from typing import (
     TYPE_CHECKING,
-    Annotated,
     Any,
     Literal,
     LiteralString,
     NoReturn,
     TypeAlias,
-    TypeVar,
-    TypeVarTuple,
     get_args,
     get_origin,
 )
@@ -32,15 +29,8 @@ from pydantic_core import (
 if TYPE_CHECKING:
     from pydantic import GetCoreSchemaHandler
 
-# Basic types for static typing with numpy
-_ShapeTypeVarTuple = TypeVarTuple("_ShapeTypeVarTuple")
-_ScalarTypeVar = TypeVar("_ScalarTypeVar", bound=np.generic, covariant=True)
 
-# Accessible types
-Shape: TypeAlias = tuple[*_ShapeTypeVarTuple]
-_ShapeTypeVar = TypeVar("_ShapeTypeVar", bound=Shape)  # type: ignore
-ShapeLike: TypeAlias = tuple[int, ...]  # generic shape-like
-
+# Types
 _ExtendedShapeLike: TypeAlias = tuple[int | str, ...]
 _GenericNDArrayType: TypeAlias = numpy.typing.NDArray[np.generic]
 
@@ -446,7 +436,7 @@ def _get_cast_function(
     return cast_to_array
 
 
-class _NDArrayPydanticAnnotation:
+class NDArrayPydanticAnnotation:
     """
     Annotation class enabling numpy array validation in pydantic.
 
@@ -541,10 +531,3 @@ class _NDArrayPydanticAnnotation:
             json_schema=array_schema,
             serialization=json_serializer,
         )
-
-
-# define a new type alias
-NDArray: TypeAlias = Annotated[
-    np.ndarray[_ShapeTypeVar, np.dtype[_ScalarTypeVar]],
-    _NDArrayPydanticAnnotation,
-]
