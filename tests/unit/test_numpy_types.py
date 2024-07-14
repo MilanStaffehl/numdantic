@@ -6,7 +6,8 @@ Unit tests for the _numpy_validation.py module.
 from __future__ import annotations
 
 from collections.abc import Callable, Iterator, Sequence
-from typing import TYPE_CHECKING, Any, TypeAlias
+from types import GenericAlias
+from typing import TYPE_CHECKING, Any, Literal, NewType, TypeAlias
 
 import numpy as np
 import numpy.typing
@@ -237,6 +238,112 @@ def test_validate_array_shape_valid_shape_named_axes_different_names(
             patch_pydantic_error.assert_not_called()
 
 
+def test_validate_array_indeterminate_shape_valid(
+    patch_pydantic_error: MockType,
+) -> None:
+    """Test that shapes of indetermined dims pass without error"""
+    test_array = np.array([[1, 2], [3, 4]])
+    error_list = []  # type: ignore
+    output = _numpy_validation._validate_array_indeterminate_shape(
+        test_array, "int", error_list
+    )
+    # check output and that no error was reported
+    np.testing.assert_equal(test_array, output)
+    assert len(error_list) == 0
+    patch_pydantic_error.assert_not_called()
+
+
+def test_validate_array_indeterminate_shape_literal_valid(
+    patch_pydantic_error: MockType,
+) -> None:
+    """Test that shapes of indetermined dims with fixed axis len pass"""
+    test_array = np.array([[1, 2], [3, 4]])
+    error_list = []  # type: ignore
+    output = _numpy_validation._validate_array_indeterminate_shape(
+        test_array, 2, error_list
+    )
+    # check output and that no error was reported
+    np.testing.assert_equal(test_array, output)
+    assert len(error_list) == 0
+    patch_pydantic_error.assert_not_called()
+
+
+def test_validate_array_indeterminate_shape_named_axis_valid(
+    patch_pydantic_error: MockType,
+) -> None:
+    """Test that shapes of indetermined dims with named axes pass"""
+    test_array = np.array([[1, 2], [3, 4]])
+    error_list = []  # type: ignore
+    output = _numpy_validation._validate_array_indeterminate_shape(
+        test_array, "AxisLen", error_list
+    )
+    # check output and that no error was reported
+    np.testing.assert_equal(test_array, output)
+    assert len(error_list) == 0
+    patch_pydantic_error.assert_not_called()
+
+
+def test_validate_array_indeterminate_shape_literal_invalid(
+    patch_pydantic_error: MockType, subtests: SubTests
+) -> None:
+    """Test that wrong shapes are caught"""
+    test_arrays = [
+        np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32),
+        np.array([1, 2, 3, 4], dtype=np.int32),
+    ]
+    for test_array in test_arrays:
+        with subtests.test(msg=f"Shape {test_array.shape}"):
+            error_list = []  # type: ignore
+            output = _numpy_validation._validate_array_indeterminate_shape(
+                test_array, 2, error_list
+            )
+            # check output and assert that error was reported
+            np.testing.assert_equal(test_array, output)
+            assert len(error_list) == 1
+            expected_msg = (
+                f"All axes were typed to have fixed length 2. Expected shape: "
+                f"{tuple([2 for _ in test_array.shape])}, actual shape: "
+                f"{test_array.shape}."
+            )
+            patch_pydantic_error.assert_called_with(
+                "array_dimensions",
+                "Mismatched dimensions: {err_msg}",
+                {"err_msg": expected_msg},
+            )
+
+
+def test_validate_array_indeterminate_shape_named_axis_invalid(
+    patch_pydantic_error: MockType, subtests: SubTests
+) -> None:
+    """Test that wrong shapes are caught"""
+    test_arrays = [
+        np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32),
+        np.array([[1, 2, 3]], dtype=np.int32),
+    ]
+    for test_array in test_arrays:
+        with subtests.test(msg=f"Shape {test_array.shape}"):
+            error_list = []  # type: ignore
+            output = _numpy_validation._validate_array_indeterminate_shape(
+                test_array, "AxisLen", error_list
+            )
+            # check output and assert that error was reported
+            np.testing.assert_equal(test_array, output)
+            assert len(error_list) == 1
+            expected_shape = tuple(
+                [test_array.shape[0] for _ in test_array.shape]
+            )
+            expected_msg = (
+                f"All axes were typed to have length {test_array.shape[0]} "
+                f"of first axis. Expected shape: {expected_shape}, actual "
+                f"shape: {test_array.shape}."
+            )
+            patch_pydantic_error.assert_called_with(
+                "array_dimensions",
+                "Mismatched dimensions: {err_msg}",
+                {"err_msg": expected_msg},
+            )
+
+
 @pytest.mark.parametrize("expected_dtype", [np.uint64, np.unsignedinteger])
 def test_validate_array_dtype_valid_dtype(
     expected_dtype: np.generic,
@@ -444,3 +551,33 @@ def test_raise_validation_error_no_model_name() -> None:
         "input_type=ndarray]"
     )
     assert str(excinfo.value) == expected_msg
+
+
+def test_transform_shape_type() -> None:
+    """Test the function to transform generic aliases into strings/ints"""
+    test_type = GenericAlias(tuple, (int, int, int))
+    output = _numpy_validation._transform_shape_type(test_type)
+    assert output == ("int", "int", "int")
+
+
+def test_transform_shape_type_literals() -> None:
+    """Test the function to transform generic aliases into strings/ints"""
+    test_type = GenericAlias(tuple, (Literal[2], Literal[2], Literal[2]))
+    output = _numpy_validation._transform_shape_type(test_type)
+    assert output == (2, 2, 2)
+
+
+def test_transform_shape_type_new_type() -> None:
+    """Test the function to transform generic aliases into strings/ints"""
+    AxisLen = NewType("AxisLen", int)
+    test_type = GenericAlias(tuple, (AxisLen, AxisLen, AxisLen))
+    output = _numpy_validation._transform_shape_type(test_type)
+    assert output == ("AxisLen", "AxisLen", "AxisLen")
+
+
+def test_transform_shape_type_mixed_types() -> None:
+    """Test the function to transform generic aliases into strings/ints"""
+    AxisLen = NewType("AxisLen", int)
+    test_type = GenericAlias(tuple, (Literal[3], AxisLen, int))
+    output = _numpy_validation._transform_shape_type(test_type)
+    assert output == (3, "AxisLen", "int")
