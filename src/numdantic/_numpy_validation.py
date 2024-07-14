@@ -27,6 +27,8 @@ from pydantic_core import (
 )
 
 if TYPE_CHECKING:
+    from types import GenericAlias
+
     from pydantic import GetCoreSchemaHandler
 
 
@@ -131,6 +133,86 @@ def _validate_array_shape(
             expected_shape, x.shape, i, viewed_axes, error_stack
         ):
             break
+    return x
+
+
+def _validate_array_indeterminate_shape(
+    x: _GenericNDArrayType,
+    first_axis_len_or_type: str | int,
+    error_stack: list[PydanticCustomError],
+) -> _GenericNDArrayType:
+    """
+    Validate that shape of array ``x`` with indeterminate dimensions.
+
+    Function checks that the array ``x``, typed to have indeterminate
+    dimensionality, has the shape dictated by ``first_axis_len_or_type``
+    which can either be the name of the axis type or the integer length
+    that all axes must have. The function accepts arbitrary dimensions
+    for ``x``, but it will check that when ``first_axis_len_or_type`` is
+    an integer, that all axes have that exact length, and when it is a
+    type name that is not ``"int"``, that all axes have the same length
+    as the first axis. If ``first_axis_len_or_type`` is ``"int"``, the
+    function treats the shape of the array as completely arbitrary and
+    returns it as-is without verification.
+
+    If the array does not meet the requirements, the function appends
+    an appropriate ``PydanticCustomError`` to the ``error_stack``. This
+    enables gathering multiple errors before finally raising a pydantic
+    ``ValidationError`` with the list and :func:`_raise_validation_error`.
+
+    Note that there are only three recognized cases:
+
+    - ``first_axis_len_or_type`` is ``"int"``: No validation.
+    - ``first_axis_len_or_type`` is any integer: All axes must have this
+      length; dimensionality is not checked.
+    - ``first_axis_len_or_type`` is any string other than ``"int"```:
+      All axes must have the same length as the first axis.
+
+    Also note that this function makes no attempt to check that ``x``
+    is actually typed as having indeterminate shape. This must happen
+    prior to calling this function.
+
+    :param x: The array to validate. Must be a numpy array.
+    :param first_axis_len_or_type: The type name or literal length that
+        is expected for the first axis of ``x``. This can, but does not
+        have to be, the actual type or length of the first axis of ``x``.
+        When this is an integer, all axes of ``x`` wil be checked to
+        have this length. When this is any string except ``"int"``, all
+        axes of ``x`` will be checked to have the same length as the
+        first axis of ``x``. If this is the string literal ``"int"``,
+        then ``x`` is returned without verification.
+    :param error_stack: A list of ``PydanticCustomError``s, onto which
+        new errors can be appended when they are found.
+    :return: The array ``x``.
+    """
+    # validate dimensionality
+    if first_axis_len_or_type == "int":
+        # dimensionality and shape arbitrary; no validation possible
+        return x
+    elif isinstance(first_axis_len_or_type, int):
+        # literal axis length, all axes must have this length
+        expected_shape = tuple([first_axis_len_or_type for _ in x.shape])
+        err_msg = (
+            f"All axes were typed to have fixed length "
+            f"{first_axis_len_or_type}. Expected shape: {expected_shape}, "
+            f"actual shape: {x.shape}."
+        )
+    else:
+        # named axes, all axes must have length of first axis
+        expected_shape = tuple([x.shape[0] for _ in x.shape])
+        err_msg = (
+            f"All axes were typed to have length {x.shape[0]} of first axis. "
+            f"Expected shape: {expected_shape}, actual shape: {x.shape}."
+        )
+
+    if not x.shape == expected_shape:
+        error_stack.append(
+            PydanticCustomError(
+                "array_dimensions",
+                "Mismatched dimensions: {err_msg}",
+                {"err_msg": err_msg},
+            )
+        )
     return x
 
 
@@ -363,7 +445,12 @@ def _get_array_validator(
         validation_errors: list[PydanticCustomError] = []
 
         # validate array
-        x = _validate_array_shape(x, expected_shape, validation_errors)
+        if expected_shape[1] == "...":
+            x = _validate_array_indeterminate_shape(
+                x, expected_shape[0], validation_errors
+            )
+        else:
+            x = _validate_array_shape(x, expected_shape, validation_errors)
         x = _validate_array_dtype(x, expected_dtype, validation_errors, strict)
 
         # check if there were any errors
@@ -436,6 +523,35 @@ def _get_cast_function(
     return cast_to_array
 
 
+def _transform_shape_type(shape_type: GenericAlias) -> _ExtendedShapeLike:
+    """
+    Transform a generic alias for shape into a tuple of str and int.
+
+    Function takes a shape tuple as it appears in a type annotation of
+    a pydantic model field (which is a tuple of types, including ``int``,
+    new types based on ``int``, ``Literal`` integers, and possibly the
+    Python built-in ``Ellipsis`` type. It converts this tuple into a
+    tuple of strings and integers, where literal integers are converted
+    to their integer value, and all other types are replaced with their
+    type name (e.g. ``int``, ``...`` for ellipses, etc.).
+
+    :param shape_type: Tuple of types as they appear in a shape annotation.
+        Can include ``int```, new types based on ``int``, integer literals,
+        and ``...`` (built-in ``Ellipsis`` type).
+    :return: The tuple of types as string of their names, and as integers
+        for integer literals.
+    """
+    extended_shape = []
+    for x in get_args(shape_type):
+        if get_origin(x) is Literal:
+            extended_shape.append(get_args(x)[0])
+        elif x is Ellipsis:
+            extended_shape.append("...")
+        else:
+            extended_shape.append(x.__name__)
+    return tuple(extended_shape)
+
+
 class NDArrayPydanticAnnotation:
     """
     Annotation class enabling numpy array validation in pydantic.
@@ -484,12 +600,7 @@ class NDArrayPydanticAnnotation:
         """
         # get shape as actual tuple:
         shape_type = get_args(_source_type)[0]
-        expected_shape = tuple(
-            [
-                get_args(x)[0] if get_origin(x) == Literal else x.__name__
-                for x in get_args(shape_type)
-            ]
-        )
+        expected_shape = _transform_shape_type(shape_type)
         # similarly, get the dtype:
         dtype_type = get_args(get_args(_source_type)[1])[0]
 
