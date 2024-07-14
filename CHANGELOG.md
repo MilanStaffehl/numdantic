@@ -16,7 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for arrays of indeterminate dimensionality with `tuple[int, ...]` ([9fb88d4](https://github.com/MilanStaffehl/numdantic/commit/9fb88d49012974f6b099a8e8ef29ec3346c6a4f1))
 - Support for arrays of indeterminate dimensionality with fixed axis length with `tuple[Literal[n], ...]` ([9fb88d4](https://github.com/MilanStaffehl/numdantic/commit/9fb88d49012974f6b099a8e8ef29ec3346c6a4f1))
 - Support for arrays of indeterminate dimensionality with equal axes but variable axes length with `NewType` named axes and ellipsis ([9fb88d4](https://github.com/MilanStaffehl/numdantic/commit/9fb88d49012974f6b099a8e8ef29ec3346c6a4f1))
-- Commit SHA to all `CHANGELOG` entries ([?]())
+- Commit SHA to all `CHANGELOG` entries ([9787566](https://github.com/MilanStaffehl/numdantic/commit/9787566fb3f282e213383566a6d7da844829d703))
+- Section about shapes of indeterminate dimensionality to `README` ([5f2a7e4](https://github.com/MilanStaffehl/numdantic/commit/5f2a7e43fae0e918c0b31d65995f0f1a9cc8d67d))
 
 ### Changed
 
