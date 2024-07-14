@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, TextIO
 
+import pytest
 from util import assert_type_check_passes
 
 if TYPE_CHECKING:
@@ -167,6 +168,43 @@ def test_type_checking_shapes_switched_named_axes(
         "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
         "y: NDArray[Shape[AxisOne, AxisTwo], np.int32] = x"
         "  # type: ignore\n\n"
+    )
+    # fmt: on
+    assert_type_check_passes(test_string, *temp_file)
+
+
+def test_type_checking_shapes_indeterminate_dimensionality(
+    temp_file: tuple[TextIO, Path]
+) -> None:
+    """Test that shapes can be tuple[int, ...]"""
+    # fmt: off
+    test_string = (
+        "from numdantic import NDArray\n"
+        "import numpy as np\n\n"
+        "x: NDArray[tuple[int, ...], np.int32] = "
+        "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
+        "y: NDArray[tuple[int, ...], np.int32] = x\n"
+    )
+    # fmt: on
+    assert_type_check_passes(test_string, *temp_file)
+
+
+@pytest.mark.xfail(reason="Shape type is still invariant.")
+def test_type_checking_shapes_mixing_indeterminate_dims(
+    temp_file: tuple[TextIO, Path]
+) -> None:
+    """Test mixing shapes of indeterminate dimensionality with other shapes"""
+    # fmt: off
+    test_string = (
+        "from numdantic import NDArray\n"
+        "import numpy as np\n\n"
+        "x_1: NDArray[tuple[int, ...], np.int32] = "
+        "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
+        "y_1: NDArray[tuple[int, int], np.int32] = x_1\n\n"
+        "x_2: NDArray[tuple[int, ...], np.int32] = "
+        "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
+        "y_2: NDArray[tuple[int, int], np.int32] = x_2"
+        "  # type: ignore\n"
     )
     # fmt: on
     assert_type_check_passes(test_string, *temp_file)
