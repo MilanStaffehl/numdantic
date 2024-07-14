@@ -17,11 +17,11 @@ _ScalarTypeVar = TypeVar("_ScalarTypeVar", bound=np.generic, covariant=True)
 
 # Accessible types
 Shape: TypeAlias = tuple[*_ShapeTypeVarTuple]
-_ShapeTypeVar = TypeVar("_ShapeTypeVar", bound=Shape)  # type: ignore
 ShapeLike: TypeAlias = tuple[int, ...]  # generic shape-like
+_ShapeType = TypeVar("_ShapeType", bound=ShapeLike, covariant=True)
 
 # define a new type alias
 NDArray: TypeAlias = Annotated[
-    np.ndarray[_ShapeTypeVar, np.dtype[_ScalarTypeVar]],
+    np.ndarray[_ShapeType, np.dtype[_ScalarTypeVar]],
     NDArrayPydanticAnnotation,
 ]
