@@ -451,11 +451,11 @@ class NDArrayPydanticAnnotation:
     correctly validate an array passed to it according to the type
     provided:
 
-    >>> from numdantic import NDArray, Shape
+    >>> from numdantic import NDArray
     >>> from pydantic import BaseModel
     >>> import numpy as np
     >>> class MatrixModel(BaseModel):
-    ...     matrix: NDArray[Shape[int, int], np.int32]
+    ...     matrix: NDArray[tuple[int, int], np.int32]
     ...
     >>> x = np.array([[1, 2], [3, 4]])
     >>> my_model = MatrixModel(matrix=x)

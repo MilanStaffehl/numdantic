@@ -40,14 +40,14 @@ def test_type_checking_dtypes_dtype_hierarchy(
     # create a test file
     test_string = (
         "from typing import Any\n"
-        "from numdantic import NDArray, Shape\n"
+        "from numdantic import NDArray\n"
         "import numpy as np\n\n"
     )
     for i, parent_dtype in enumerate(parents):
         test_string += (
-            f"x_{i:02d}: NDArray[Shape[int], np.{dtype}] = "
+            f"x_{i:02d}: NDArray[tuple[int], np.{dtype}] = "
             f"np.array([1], dtype=np.{dtype})\n"
-            f"y_{i:02d}: NDArray[Shape[int], np.{parent_dtype}] = "
+            f"y_{i:02d}: NDArray[tuple[int], np.{parent_dtype}] = "
             f"x_{i:02d}\n\n"
         )
     # run type check and fail if it throws errors
@@ -75,9 +75,7 @@ def test_type_checking_dtypes_interoperable_types(
     )
 
     # create a test string containing all possible combinations
-    test_string = (
-        "from numdantic import NDArray, Shape\nimport numpy as np\n\n"
-    )
+    test_string = "from numdantic import NDArray\nimport numpy as np\n\n"
     for i, type_tuple in enumerate(dtype_combinations):
         actual_type = type_tuple[0]
         target_type = type_tuple[1]
@@ -89,9 +87,9 @@ def test_type_checking_dtypes_interoperable_types(
 
         # append to test string
         test_string += (
-            f"x_{i:02d}: NDArray[Shape[int], np.{actual_type}] = "
+            f"x_{i:02d}: NDArray[tuple[int], np.{actual_type}] = "
             f"np.array([1], dtype=np.{actual_type})\n"
-            f"y_{i:02d}: NDArray[Shape[int], np.{target_type}] = "
+            f"y_{i:02d}: NDArray[tuple[int], np.{target_type}] = "
             f"x_{i:02d}{ignore}\n\n"
         )
     # run type check
@@ -123,17 +121,15 @@ def test_type_checking_dtypes_incompatible_types(
     dtype_combinations = itertools.product(target_dtypes, actual_dtypes)
 
     # prepare test string
-    test_string = (
-        "from numdantic import NDArray, Shape\nimport numpy as np\n\n"
-    )
+    test_string = "from numdantic import NDArray\nimport numpy as np\n\n"
     for i, type_tuple in enumerate(dtype_combinations):
         actual_type = type_tuple[0]
         target_type = type_tuple[1]
         # append to test string
         test_string += (
-            f"x_{i:02d}: NDArray[Shape[int], np.{actual_type}] = "
+            f"x_{i:02d}: NDArray[tuple[int], np.{actual_type}] = "
             f"np.array([1], dtype=np.{actual_type})\n"
-            f"y_{i:02d}: NDArray[Shape[int], np.{target_type}] = "
+            f"y_{i:02d}: NDArray[tuple[int], np.{target_type}] = "
             f"x_{i:02d}  # type: ignore\n\n"
         )
     # run type check
@@ -175,14 +171,14 @@ def test_type_checking_dtypes_generics_covariant(
     # create a test string
     test_string = (
         "from typing import Any\n"
-        "from numdantic import NDArray, Shape\n"
+        "from numdantic import NDArray\n"
         "import numpy as np\n\n"
     )
     for i, target_dtype in enumerate(supported_dtypes):
         test_string += (
-            f"x_{i:02d}: NDArray[Shape[int], np.{generic_dtype}] = "
+            f"x_{i:02d}: NDArray[tuple[int], np.{generic_dtype}] = "
             f"np.array([1], dtype=np.{generic_dtype})\n"
-            f"y_{i:02d}: NDArray[Shape[int], np.{target_dtype}] = "
+            f"y_{i:02d}: NDArray[tuple[int], np.{target_dtype}] = "
             f"x_{i:02d}  # type: ignore\n\n"
         )
 
@@ -215,14 +211,14 @@ def test_type_checking_dtypes_generics_contravariant(
     # create a test string
     test_string = (
         "from typing import Any\n"
-        "from numdantic import NDArray, Shape\n"
+        "from numdantic import NDArray\n"
         "import numpy as np\n\n"
     )
     for i, target_dtype in enumerate(supported_dtypes):
         test_string += (
-            f"x_{i:02d}: NDArray[Shape[int], np.{generic_dtype}] = "
+            f"x_{i:02d}: NDArray[tuple[int], np.{generic_dtype}] = "
             f"np.array([1], dtype=np.{generic_dtype})\n"
-            f"y_{i:02d}: NDArray[Shape[int], np.{target_dtype}] = "
+            f"y_{i:02d}: NDArray[tuple[int], np.{target_dtype}] = "
             f"x_{i:02d}  # type: ignore\n\n"
         )
 

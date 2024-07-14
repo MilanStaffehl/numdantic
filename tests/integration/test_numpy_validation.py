@@ -12,7 +12,7 @@ import numpy.typing as npt
 import pytest
 from pydantic import BaseModel, ConfigDict, ValidationError
 
-from numdantic import NDArray, Shape
+from numdantic import NDArray
 
 if TYPE_CHECKING:
     from pytest_subtests import SubTests
@@ -25,44 +25,44 @@ AxisLen2 = NewType("AxisLen2", int)
 class BasicTestModel(BaseModel):
     """Test base model for a 2x2 array of int32 dtype"""
 
-    matrix: NDArray[Shape[Literal[2], Literal[2]], np.int32]
+    matrix: NDArray[tuple[Literal[2], Literal[2]], np.int32]
 
 
 class FloatTestModel(BaseModel):
     """Test base model for a 2x2 array of int32 dtype"""
 
-    matrix: NDArray[Shape[Literal[2], Literal[2]], np.float32]
+    matrix: NDArray[tuple[Literal[2], Literal[2]], np.float32]
 
 
 class StrictTestModel(BaseModel):
     """Test model for a 2x2 array of int32 dtype, with strict validation"""
 
     model_config = ConfigDict(strict=True)
-    matrix: NDArray[Shape[Literal[2], Literal[2]], np.int32]
+    matrix: NDArray[tuple[Literal[2], Literal[2]], np.int32]
 
 
 class UnspecificDtypeModel(BaseModel):
     """Test model for a 2x2 array, but with generic floating point type"""
 
-    matrix: NDArray[Shape[Literal[2], Literal[2]], np.floating]  # type: ignore
+    matrix: NDArray[tuple[Literal[2], Literal[2]], np.floating]  # type: ignore
 
 
 class UnspecifiedAxisLengthModel(BaseModel):
     """Test model for a 3D array of unspecified axis length"""
 
-    matrix: NDArray[Shape[int, int, int], np.int32]
+    matrix: NDArray[tuple[int, int, int], np.int32]
 
 
 class CustomAxisTypeModel(BaseModel):
     """Test custom types as axis length"""
 
-    matrix: NDArray[Shape[AxisLen, AxisLen], np.int32]
+    matrix: NDArray[tuple[AxisLen, AxisLen], np.int32]
 
 
 class ComplexAxisLengthModel(BaseModel):
     """Model mixing complex axes lengths"""
 
-    matrix: NDArray[Shape[int, AxisLen, AxisLen2, AxisLen, AxisLen2], np.int32]
+    matrix: NDArray[tuple[int, AxisLen, AxisLen2, AxisLen, AxisLen2], np.int32]
 
 
 def test_numpy_simple_array_validation() -> None:
