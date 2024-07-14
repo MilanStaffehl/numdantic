@@ -65,6 +65,24 @@ class ComplexAxisLengthModel(BaseModel):
     matrix: NDArray[tuple[int, AxisLen, AxisLen2, AxisLen, AxisLen2], np.int32]
 
 
+class IndeterminateDimModel(BaseModel):
+    """Model with indeterminate array dimensionality"""
+
+    matrix: NDArray[tuple[int, ...], np.int32]
+
+
+class IndeterminateDimLiteralLengthAxisModel(BaseModel):
+    """Model with indeterminate array dimensionality"""
+
+    matrix: NDArray[tuple[Literal[2], ...], np.int32]
+
+
+class IndeterminateDimSameLengthAxisModel(BaseModel):
+    """Model with indeterminate array dimensionality"""
+
+    matrix: NDArray[tuple[AxisLen, ...], np.int32]
+
+
 def test_numpy_simple_array_validation() -> None:
     """Test that the validator can validate a correct array"""
     test_array = np.array([[1, 2], [3, 4]], dtype=np.int32)
@@ -357,6 +375,155 @@ def test_numpy_validation_new_type_as_axis_length_error_msg() -> None:
         "('int', 'AxisLen', 'AxisLen2', 'AxisLen', 'AxisLen2')"
     )
     assert expected_msg_part_two in str(excinfo.value)
+
+
+def test_numpy_validation_indeterminate_dimensionality(
+    subtests: SubTests,
+) -> None:
+    """Test that an indeterminate dimensionality shape is accepted"""
+    test_arrays = [
+        np.array([1], dtype=np.int32),
+        np.array([1, 2, 3], dtype=np.int32),
+        np.array([[1], [2]], dtype=np.int32),
+        np.array([[1, 2], [3, 4]], dtype=np.int32),
+        np.array([[[1], [2]], [[3], [4]]], dtype=np.int32),
+        np.array([[[[[[1]]]]]], dtype=np.int32),
+    ]
+
+    for test_array in test_arrays:
+        with subtests.test(
+            msg=f"Shape {test_array.shape}", shape=test_array.shape
+        ):
+            my_model = IndeterminateDimModel(matrix=test_array)
+            serialization = my_model.model_dump()
+            assert "matrix" in serialization
+            np.testing.assert_array_equal(test_array, serialization["matrix"])
+
+
+def test_numpy_validation_indeterminate_dims_fixed_len_valid(
+    subtests: SubTests,
+) -> None:
+    """
+    Test arrays typed to have indeterminate dim but fixed axis lengths.
+
+    Literals followed by ellipsis means all axes have same length.
+    Named axes followed by ellipsis means all axes must have length of
+    first axis.
+    """
+    test_arrays = [
+        np.array([1, 2], dtype=np.int32),
+        np.array([[1, 2], [3, 4]], dtype=np.int32),
+        np.ones((2, 2, 2), dtype=np.int32),
+        np.ones((2, 2, 2, 2), dtype=np.int32),
+    ]
+
+    for test_array in test_arrays:
+        with subtests.test(msg=f"Model Literal, shape {test_array.shape}"):
+            my_model = IndeterminateDimLiteralLengthAxisModel(
+                matrix=test_array
+            )
+            serialization = my_model.model_dump()
+            assert "matrix" in serialization
+            np.testing.assert_array_equal(test_array, serialization["matrix"])
+
+        with subtests.test(msg=f"Model NewType, shape {test_array.shape}"):
+            my_model_ = IndeterminateDimSameLengthAxisModel(matrix=test_array)
+            serialization = my_model_.model_dump()
+            assert "matrix" in serialization
+            np.testing.assert_array_equal(test_array, serialization["matrix"])
+
+
+def test_numpy_validation_indeterminate_dims_with_literal_invalid(
+    subtests: SubTests,
+) -> None:
+    """Test that invalid shapes raise ValidationError"""
+    test_arrays = [
+        np.array([1], dtype=np.int32),
+        np.array([[1], [2]], dtype=np.int32),
+        np.ones((2, 2, 3), dtype=np.int32),
+        np.ones((2, 2, 2, 1), dtype=np.int32),
+    ]
+
+    for test_array in test_arrays:
+        with subtests.test(msg=f"Shape {test_array.shape}"):
+            with pytest.raises(ValidationError) as excinfo:
+                IndeterminateDimLiteralLengthAxisModel(matrix=test_array)
+            expected_shape = tuple([2 for _ in test_array.shape])
+            expected_msg = (
+                f"1 validation error for IndeterminateDimLiteralLengthAxisModel"
+                f"\nmatrix\n  Mismatched dimensions: All axes were typed to "
+                f"have fixed length 2. Expected shape: {expected_shape}, "
+                f"actual shape: {test_array.shape}."
+            )
+            assert expected_msg in str(excinfo.value)
+
+
+def test_numpy_validation_indeterminate_dims_with_newtype_invalid(
+    subtests: SubTests,
+) -> None:
+    """Test that invalid shapes raise ValidationError"""
+    test_arrays = [
+        np.array([[1], [2]], dtype=np.int32),
+        np.ones((2, 2, 3), dtype=np.int32),
+        np.ones((2, 2, 2, 1), dtype=np.int32),
+        np.ones((2, 1, 2, 1), dtype=np.int32),
+    ]
+
+    for test_array in test_arrays:
+        with subtests.test(msg=f"Shape {test_array.shape}"):
+            with pytest.raises(ValidationError) as excinfo:
+                IndeterminateDimSameLengthAxisModel(matrix=test_array)
+            expected_len = test_array.shape[0]
+            expected_shape = tuple([expected_len for _ in test_array.shape])
+            expected_msg = (
+                f"1 validation error for IndeterminateDimSameLengthAxisModel"
+                f"\nmatrix\n  Mismatched dimensions: All axes were typed to "
+                f"have length {expected_len} of first axis. Expected shape: "
+                f"{expected_shape}, actual shape: {test_array.shape}."
+            )
+            assert expected_msg in str(excinfo.value)
+
+
+def test_numpy_validation_indeterminate_dims_named_axes_1d(
+    subtests: SubTests,
+) -> None:
+    """NewType allows arbitrary 1D axes of any length"""
+    test_arrays = [
+        np.array([1], dtype=np.int32),
+        np.array([1, 2, 3], dtype=np.int32),
+        np.array([1, 2, 3, 4, 5, 6, 7, 8, 9], dtype=np.int32),
+    ]
+
+    for test_array in test_arrays:
+        with subtests.test(msg=f"Model NewType, shape {test_array.shape}"):
+            my_model = IndeterminateDimSameLengthAxisModel(matrix=test_array)
+            serialization = my_model.model_dump()
+            assert "matrix" in serialization
+            np.testing.assert_array_equal(test_array, serialization["matrix"])
+
+
+def test_numpy_validation_indeterminate_dims_named_axes_len_agnostic(
+    subtests: SubTests,
+) -> None:
+    """
+    The same model using NewType allows different axes lengths
+    This is different from Literal, which allows only the specifically
+    typed length. Using the same model, one can have arrays with different
+    axes lengths, whereas models with literal axes lengths fix the length.
+    """
+    test_arrays = [
+        # different arrays have different axes lengths
+        np.ones((2, 2, 2), dtype=np.int32),
+        np.ones((3, 3), dtype=np.int32),
+        np.ones((4, 4, 4, 4), dtype=np.int32),
+    ]
+
+    for test_array in test_arrays:
+        with subtests.test(msg=f"Model NewType, shape {test_array.shape}"):
+            my_model = IndeterminateDimSameLengthAxisModel(matrix=test_array)
+            serialization = my_model.model_dump()
+            assert "matrix" in serialization
+            np.testing.assert_array_equal(test_array, serialization["matrix"])
 
 
 def test_numpy_array_json_schema_model_dump() -> None:
