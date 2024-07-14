@@ -21,18 +21,18 @@ def test_type_checking_shapes_exact_matches(
     # fmt: off
     test_string = (
         "from typing import NewType, Literal as L\n"
-        "from numdantic import NDArray, Shape\n"
+        "from numdantic import NDArray\n"
         "import numpy as np\n\n"
         "AxisLen = NewType('AxisLen', int)\n\n"
-        "x_int: NDArray[Shape[int, int], np.int32] = "
+        "x_int: NDArray[tuple[int, int], np.int32] = "
         "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
-        "y_int: NDArray[Shape[int, int], np.int32] = x_int\n\n"
-        "x_lit: NDArray[Shape[L[2], L[2]], np.int32] = "
+        "y_int: NDArray[tuple[int, int], np.int32] = x_int\n\n"
+        "x_lit: NDArray[tuple[L[2], L[2]], np.int32] = "
         "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
-        "y_lit: NDArray[Shape[L[2], L[2]], np.int32] = x_lit\n\n"
-        "x_nt: NDArray[Shape[AxisLen, AxisLen], np.int32] = "
+        "y_lit: NDArray[tuple[L[2], L[2]], np.int32] = x_lit\n\n"
+        "x_nt: NDArray[tuple[AxisLen, AxisLen], np.int32] = "
         "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
-        "y_nt: NDArray[Shape[AxisLen, AxisLen], np.int32] = x_nt\n\n"
+        "y_nt: NDArray[tuple[AxisLen, AxisLen], np.int32] = x_nt\n\n"
     )
     # fmt: on
     assert_type_check_passes(test_string, *temp_file)
@@ -45,22 +45,22 @@ def test_type_checking_shapes_mismatched_shapes(
     # fmt: off
     test_string = (
         "from typing import NewType, Literal as L\n"
-        "from numdantic import NDArray, Shape\n"
+        "from numdantic import NDArray\n"
         "import numpy as np\n\n"
         "AxisLen = NewType('AxisLen', int)\n\n"
-        "x_int: NDArray[Shape[int, int], np.int32] = "
+        "x_int: NDArray[tuple[int, int], np.int32] = "
         "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
-        "y_int: NDArray[Shape[int], np.int32] = x_int"
+        "y_int: NDArray[tuple[int], np.int32] = x_int"
         "  # type: ignore\n\n"
-        "x_lit: NDArray[Shape[L[2], L[2]], np.int32] = "
+        "x_lit: NDArray[tuple[L[2], L[2]], np.int32] = "
         "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
-        "y_lit: NDArray[Shape[L[5], L[5]], np.int32] = x_lit"  # wrong len
+        "y_lit: NDArray[tuple[L[5], L[5]], np.int32] = x_lit"  # wrong len
         "  # type: ignore\n\n"
-        "y_lit_: NDArray[Shape[L[2]], np.int32] = x_lit"  # wrong dims
+        "y_lit_: NDArray[tuple[L[2]], np.int32] = x_lit"  # wrong dims
         "  # type: ignore\n\n"
-        "x_nt: NDArray[Shape[AxisLen, AxisLen], np.int32] = "
+        "x_nt: NDArray[tuple[AxisLen, AxisLen], np.int32] = "
         "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
-        "y_nt: NDArray[Shape[AxisLen], np.int32] = x_nt"
+        "y_nt: NDArray[tuple[AxisLen], np.int32] = x_nt"
         "  # type: ignore\n\n"
     )
     # fmt: on
@@ -74,15 +74,15 @@ def test_type_checking_shapes_literal_with_int(
     # fmt: off
     test_string = (
         "from typing import Literal as L\n"
-        "from numdantic import NDArray, Shape\n"
+        "from numdantic import NDArray\n"
         "import numpy as np\n\n"
-        "x_1: NDArray[Shape[L[2], L[2]], np.int32] = "
+        "x_1: NDArray[tuple[L[2], L[2]], np.int32] = "
         "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
-        "y_1: NDArray[Shape[int, int], np.int32] = x_1"
+        "y_1: NDArray[tuple[int, int], np.int32] = x_1"
         "  # type: ignore\n\n"
-        "x_2: NDArray[Shape[int, int], np.int32] = "
+        "x_2: NDArray[tuple[int, int], np.int32] = "
         "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
-        "y_2: NDArray[Shape[L[2], L[2]], np.int32] = x_2"
+        "y_2: NDArray[tuple[L[2], L[2]], np.int32] = x_2"
         "  # type: ignore\n\n"
     )
     # fmt: on
@@ -96,16 +96,16 @@ def test_type_checking_shapes_named_axis_with_int(
     # fmt: off
     test_string = (
         "from typing import NewType\n"
-        "from numdantic import NDArray, Shape\n"
+        "from numdantic import NDArray\n"
         "import numpy as np\n\n"
         "AxisLen = NewType('AxisLen', int)\n\n"
-        "x_1: NDArray[Shape[AxisLen, AxisLen], np.int32] = "
+        "x_1: NDArray[tuple[AxisLen, AxisLen], np.int32] = "
         "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
-        "y_1: NDArray[Shape[int, int], np.int32] = x_1"
+        "y_1: NDArray[tuple[int, int], np.int32] = x_1"
         "  # type: ignore\n\n"
-        "x_2: NDArray[Shape[int, int], np.int32] = "
+        "x_2: NDArray[tuple[int, int], np.int32] = "
         "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
-        "y_2: NDArray[Shape[AxisLen, AxisLen], np.int32] = x_2"
+        "y_2: NDArray[tuple[AxisLen, AxisLen], np.int32] = x_2"
         "  # type: ignore\n\n"
     )
     # fmt: on
@@ -119,16 +119,16 @@ def test_type_checking_shapes_named_axis_with_literal(
     # fmt: off
     test_string = (
         "from typing import NewType, Literal as L\n"
-        "from numdantic import NDArray, Shape\n"
+        "from numdantic import NDArray\n"
         "import numpy as np\n\n"
         "AxisLen = NewType('AxisLen', int)\n\n"
-        "x_1: NDArray[Shape[AxisLen, AxisLen], np.int32] = "
+        "x_1: NDArray[tuple[AxisLen, AxisLen], np.int32] = "
         "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
-        "y_1: NDArray[Shape[L[2], L[2]], np.int32] = x_1"
+        "y_1: NDArray[tuple[L[2], L[2]], np.int32] = x_1"
         "  # type: ignore\n\n"
-        "x_2: NDArray[Shape[L[2], L[2]], np.int32] = "
+        "x_2: NDArray[tuple[L[2], L[2]], np.int32] = "
         "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
-        "y_2: NDArray[Shape[AxisLen, AxisLen], np.int32] = x_2"
+        "y_2: NDArray[tuple[AxisLen, AxisLen], np.int32] = x_2"
         "  # type: ignore\n\n"
     )
     # fmt: on
@@ -142,12 +142,12 @@ def test_type_checking_shapes_mixed_shape_annotations(
     # fmt: off
     test_string = (
         "from typing import NewType, Literal as L\n"
-        "from numdantic import NDArray, Shape\n"
+        "from numdantic import NDArray\n"
         "import numpy as np\n\n"
         "AxisLen = NewType('AxisLen', int)\n\n"
-        "x: NDArray[Shape[AxisLen, int, L[2]], np.int32] = "
+        "x: NDArray[tuple[AxisLen, int, L[2]], np.int32] = "
         "np.array([[[1, 2]], [[3, 4]]], dtype=np.int32)\n"
-        "y: NDArray[Shape[AxisLen, int, L[2]], np.int32] = x\n\n"
+        "y: NDArray[tuple[AxisLen, int, L[2]], np.int32] = x\n\n"
     )
     # fmt: on
     assert_type_check_passes(test_string, *temp_file)
@@ -160,13 +160,13 @@ def test_type_checking_shapes_switched_named_axes(
     # fmt: off
     test_string = (
         "from typing import NewType\n"
-        "from numdantic import NDArray, Shape\n"
+        "from numdantic import NDArray\n"
         "import numpy as np\n\n"
         "AxisOne = NewType('AxisOne', int)\n"
         "AxisTwo = NewType('AxisTwo', int)\n\n"
-        "x: NDArray[Shape[AxisTwo, AxisOne], np.int32] = "
+        "x: NDArray[tuple[AxisTwo, AxisOne], np.int32] = "
         "np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
-        "y: NDArray[Shape[AxisOne, AxisTwo], np.int32] = x"
+        "y: NDArray[tuple[AxisOne, AxisTwo], np.int32] = x"
         "  # type: ignore\n\n"
     )
     # fmt: on
