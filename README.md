@@ -18,6 +18,8 @@ Typing support for [`numpy`](https://numpy.org/) arrays, compatible with [`pydan
   - [Axes of unspecified length](#axes-of-unspecified-length)
   - [Axes of specific length](#axes-of-specific-length)
   - [Named axes](#named-axes)
+  - [Mixing of shape types](#mixing-of-shape-types)
+  - [Arrays of indeterminate dimensionality](#arrays-of-indeterminate-dimensionality)
   - [Generic scalar types](#generic-scalar-types)
   - [Behavior in lax vs. strict mode](#behavior-in-lax-vs-strict-mode)
   - [Arrays from sequences](#arrays-from-sequences)
@@ -51,7 +53,7 @@ This project aims to do two things:
   - Shape (dimensionality and axis lengths)
   - dtypes
   - Axis length for same-length axes
-- **Minimalistic**: There are exactly two types that make `numdantic` work and that you need to learn about - nothing more!
+- **Minimalistic**: There is only one type that makes `numdantic` work and that you need to learn about - nothing more!
 
 ## Installation
 
@@ -63,14 +65,14 @@ pip install numdantic
 
 ## Usage
 
-To get started, import the `NDArray` and `Shape` types from the package. `NDArray` takes two type parameters: a shape, and a `numpy` scalar type. You can use it to annotate a variable as an array like this:
+To get started, import the `NDArray`  type from the package. `NDArray` takes two type parameters: a shape, and a `numpy` scalar type. You can use it to annotate a variable as an array like this:
 
 ```Python
 import numpy as np
-from numdantic import NDArray, Shape
+from numdantic import NDArray
 
 # annotating a 2D array
-matrix: NDArray[Shape[int, int], np.int32] = np.random.rand(2, 2)
+matrix: NDArray[tuple[int, int], np.int32] = np.random.rand(2, 2)
 ```
 
 This variable is now typed as a 2D array, with its axes having unspecified length, and of dtype `np.int32`. Static type checker such as `mypy` will now be able to check if you are using the variable correctly. Both shape and dtype are a lot more flexible than shown here though; you can learn about specifying axis lengths and same-length-axes in the [_Concepts_](#concepts) section below.
@@ -79,11 +81,11 @@ If you wish to use a `numpy` array inside of a `pydantic` base model, you can us
 
 ```Python
 import numpy as np
-from numdantic import NDArray, Shape
+from numdantic import NDArray
 from pydantic import BaseModel
 
 class MyModel(BaseModel):
-    matrix: NDArray[Shape[int, int], np.int32]
+    matrix: NDArray[tuple[int, int], np.int32]
 
 # this will pass validation
 MyModel(matrix=np.array([[1, 2], [3, 4]], dtype=np.int32))
@@ -101,15 +103,15 @@ Learn more about what else `numdantic` can do below!
 
 ### Axes of unspecified length
 
-If you wish to annotate an array that has a specific dimensionality, but whose axes can have arbitrary length, you can type its shape using the `int` type. The rationale behind this is that array shapes are tuples of integers, and therefore, they are typed as such. For example, you can specify 1D, 2D, and 3D arrays like this:
+If you wish to annotate an array that has a specific dimensionality, but whose axes can have arbitrary length, you can type its shape using a `tuple` of `int`. The rationale behind this is that array shapes are tuples of integers, and therefore, they are typed as such. For example, you can specify 1D, 2D, and 3D arrays like this:
 
 ```Python
 import numpy as np
-from numdantic import NDArray, Shape
+from numdantic import NDArray
 
-array1d: NDArray[Shape[int], np.int32] = ...
-array2d: NDArray[Shape[int, int], np.int32] = ...
-array3d: NDArray[Shape[int, int, int], np.int32] = ...
+array1d: NDArray[tuple[int], np.int32] = ...
+array2d: NDArray[tuple[int, int], np.int32] = ...
+array3d: NDArray[tuple[int, int, int], np.int32] = ...
 ```
 
 Type checkers and `pydantic` will not verify the length of the axes. This means that both an array of shape `(2, 2)` and `(100, 100)` would pass validation as `array2d`, but an array of shape `(1, )` or `(2, 2, 2)` would cause an error due to a mismatch in dimensions.
@@ -121,16 +123,16 @@ Often you will know what lengths your axes will have and want to make sure that 
 ```Python
 from typing import Literal as L
 import numpy as np
-from numdantic import NDArray, Shape
+from numdantic import NDArray
 
-widescreen_image: NDArray[Shape[L[1080], L[720], L[4]], np.int64]
+widescreen_image: NDArray[tuple[L[1080], L[720], L[4]], np.int64]
 ```
 
 Type checkers will accept this notation. Moreover, when used inside of a `pydantic` base model, this will ensure that the axes of the array are checked for their length; if any axis has a length that does not match its annotation, a `ValidationError` will be raised accordingly.
 
 > [!NOTE]
 >
-> There is one significant caveat to this approach: you cannot mix unspecified axes and axes of specific length, i.e. attempting to assign `widescreen_image` to a variable typed to have shape `Shape[int, int, int]` does not work and will cause type checkers to report an error. Once you opt for literals in your shapes, you will have to commit to them. Learn more about this limitation and why it occurs in the section about [Limitations](#limitations).
+> There is one significant caveat to this approach: you cannot mix unspecified axes and axes of specific length, i.e. attempting to assign `widescreen_image` to a variable typed to have shape `tuple[int, int, int]` does not work and will cause type checkers to report an error. Once you opt for literals in your shapes, you will have to commit to them. Learn more about this limitation and why it occurs in the section about [Limitations](#limitations).
 
 ### Named axes
 
@@ -146,7 +148,7 @@ You can achieve this in `numdantic` by defining a `NewType` based on `int` and u
 ```Python
 from typing import NewType
 import numpy as np
-from numdantic import NDArray, Shape
+from numdantic import NDArray
 
 # named axes
 Width = NewType("Width", int)
@@ -154,27 +156,27 @@ Height = NewType("Height", int)
 RGBAColor = NewType("RGBAColor", int)
 
 # annotate frame
-video_frame: NDArray[Shape[Width, Height, RGBAColor], np.int64]
+video_frame: NDArray[tuple[Width, Height, RGBAColor], np.int64]
 ```
 
-This annotation will ensure that the axes are always ordered the correct way. For example, attempting to use `video_frame` in a function that accepts an array typed as `NDArray[Shape[Height, Width, RGBAColor], np.int64]` will cause type checkers to raise an error.
+This annotation will ensure that the axes are always ordered the correct way. For example, attempting to use `video_frame` in a function that accepts an array typed as `NDArray[tuple[Height, Width, RGBAColor], np.int64]` will cause type checkers to raise an error.
 
 > [!NOTE]
-> There is one significant caveat to this approach: you cannot mix unspecified axes and named axes, i.e. attempting to assign `video_frame` to a variable typed to have shape `Shape[int, int, int]` does not work and will cause type checkers to report an error. Once you opt for named axes, you will have to commit to them. Learn more about this limitation and why it occurs in the section about [Limitations](#limitations).
+> There is one significant caveat to this approach: you cannot mix unspecified axes and named axes, i.e. attempting to assign `video_frame` to a variable typed to have shape `tuple[int, int, int]` does not work and will cause type checkers to report an error. Once you opt for named axes, you will have to commit to them. Learn more about this limitation and why it occurs in the section about [Limitations](#limitations).
 
 Named axes have a secondary benefit that only comes into play when validating them with `pydantic`: If you use two or more axes of the same name in a base model field annotation, `pydantic` will check that they all have the same length:
 
 ```Python
 from typing import NewType
 import numpy as np
-from numdantic import NDArray, Shape
+from numdantic import NDArray
 
 # named axes
 Side = NewType("Side", int)
 
 class Square(BaseModel):
     # both axes must have same length
-    vertices: NDArray[Shape[Side, Side], np.int32]
+    vertices: NDArray[tuple[Side, Side], np.int32]
 
 # this will work (shape is (2, 2))
 Square(vertices=np.array([[1, 2], [1, 2]], dtype=np.int32))
@@ -190,14 +192,45 @@ It is possible and intended that you mix axes of unspecified length, axes of spe
 ```Python
 from typing import NewType, Literal as L
 import numpy as np
-from numdantic import NDArray, Shape
+from numdantic import NDArray
 
 SomeAxis = NewType("SomeAxis", int)
 
-x: NDArray[Shape[int, SomeAxis, L[2], SomeAxis], np.int32]
+x: NDArray[tuple[int, SomeAxis, L[2], SomeAxis], np.int32]
 ```
 
 For each of these axes, type checkers and `pydantic` will apply the rules described above. In a `pydantic` model this would mean that the second and fourth axes of `x` must have the same length and the third axis must be of length 2.
+
+### Arrays of indeterminate dimensionality
+
+If you do not know the dimensionality of your array or wish to type an array that can have arbitrary shape and dimensionality, you can use a tuple of indeterminate size, using the Python built-in ellipsis literal `...`:
+
+```Python
+import numpy as np
+from numdantic import NDArray
+
+any_shape: NDArray[tuple[int, ...], np.generic]  # most generic array!
+```
+
+When used with `pydantic`, the shape and dimensionality of such an array are never checked; shape validation is skipped entirely. The dtype of the array however is validated regularly.
+
+If you have an array of which you do not know the dimensionality, but you do know the length every axis must have, you can similarly type an array that has a shape that consists only of an arbitrary number of literal integers:
+
+```Python
+from typing import Literal as L
+import numpy as np
+from numdantic import NDArray
+
+n_gon: NDArray[tuple[L[2], ...], np.generic]  # all axes must have length 2
+```
+
+When such an array is validated with `pydantic`, all its axes must have the specified length, but the number of axes (i.e. its dimensionality) is not validated.
+
+You can also use named axes this way. In this case, `pydantic` will check that all axes have the same length as the first axis of the array.
+
+> [!NOTE]
+>
+> Unfortunately, this shape type has the same limitation as the other shape types: it cannot be mixed with other shape types. For example, an array typed as having shape `tuple[int, int]` can not be assigned to a variable typed as `NDArray[tuple[int, ...], np.generic]`. This is a serious limitation that is being worked on. See the section on [Limitations](#limitations) to learn more.
 
 ### Generic scalar types
 
@@ -205,14 +238,14 @@ Often, it is not crucial what precision your arrays dtype has. You might not car
 
 ```Python
 import numpy as np
-from numdantic import NDArray, Shape
+from numdantic import NDArray
 from typing import Any
 
 # an array that will accept any number
-any_number: NDArray[Shape[int, int], np.number[Any]]
+any_number: NDArray[tuple[int, int], np.number[Any]]
 
 # an array that will accept any positive integer
-pos_ints: NDArray[Shape[int, int], np.unsignedinteger[Any]]
+pos_ints: NDArray[tuple[int, int], np.unsignedinteger[Any]]
 ```
 
 See the `numpy` documentation for [scalar types](https://numpy.org/doc/stable/reference/arrays.scalars.html#built-in-scalar-types) for an overview over what scalar types `numpy` offers.
@@ -241,10 +274,10 @@ When using `NDArray` as a field type in a `pydantic` base model, you can also pa
 ```Python
 import numpy as np
 from pydantic import BaseModel
-from numdantic import NDArray, Shape
+from numdantic import NDArray
 
 class MyModel(BaseModel):
-    array: NDArray[Shape[int, int], np.int64]
+    array: NDArray[tuple[int, int], np.int64]
 
 # create a model using a sequence
 my_model = MyModel(array=[[1, 2], [3, 4]])
@@ -263,12 +296,12 @@ Due to how `numpy` handles the shape and dtype of its `ndarray` type, static typ
 
 ```Python
 import numpy as np
-from numdantic import NDArray, Shape
+from numdantic import NDArray
 
 # This does not cause a type checking error!
-x: NDArray[Shape[int, int], np.int32] = np.array([1, 2, 3], dtype=np.int32)
+x: NDArray[tuple[int, int], np.int32] = np.array([1, 2, 3], dtype=np.int32)
 # This does not cause a type checking error either!
-x: NDArray[Shape[int, int], np.int32] = np.array([[1, 2], [3, 4]], dtype=np.float32)
+x: NDArray[tuple[int, int], np.int32] = np.array([[1, 2], [3, 4]], dtype=np.float32)
 ```
 
 This is due to the fact that `numpy` functions usually have return types annotations where the array shape is always `Any`, and the dtype typically is `np.generic`. Some `numpy` functions might have type annotations that accurately represent at least the dtype of their return value, but this is by no means guaranteed. There is nothing much that can be done about this, until `numpy` changes its own typing system to more accurately reflect the return values dtype and shape.
@@ -284,41 +317,41 @@ It is not possible to use named axes created with `NewType` in places that are t
 ```Python
 from typing import NewType
 import numpy as np
-from numdantic import NDArray, Shape
+from numdantic import NDArray
 
 # named axes
 Width = NewType("Width", int)
 Height = NewType("Height", int)
 
 # annotate image
-image: NDArray[Shape[Width, Height], np.int64] = np.random.rand(40, 20)
+image: NDArray[tuple[Width, Height], np.int64] = np.random.rand(40, 20)
 
 def transpose_image(
-    img: NDArray[Shape[int, int], np.int32]
-) -> NDArray[Shape[int, int], np.int32]:
+    img: NDArray[tuple[int, int], np.int32]
+) -> NDArray[tuple[int, int], np.int32]:
     return img.transpose()
 
-# this will raise am error when checked by a type checker!
+# this will raise an error when checked by a type checker!
 transpose_image(image)
 ```
 
-Similarly, you cannot mix shapes with literal integers such as `Shape[Literal[2], Literal[2]]` with named axes or generic axes typed with `int`. All these combinations will cause your type checker to issue an error.
+Similarly, you cannot mix shapes with literal integers such as `tuple[Literal[2], Literal[2]]` with named axes or generic axes typed with `int`. All these combinations will cause your type checker to issue an error.
 
-This happens because the `TypeVarTuple` used to make shapes work within `numdantic` currently has no way of specifying variance; it is invariant in all its entries. As a result, type checkers are not able to accept subtypes of `int` inside of a `Shape` to be valid in place of actual `int` types.
+This happens because the type parameter for shape in the `numpy.ndarray` type is currently typed as invariant. As a result, type checkers are not able to accept subtypes of `int` inside of a `tuple` to be valid in place of actual `int` types. There are efforts on the side of the `numpy` developers to make this parameter covariant however, and simultaneously, `numdantic` might provide its own solution in the future.
 
-If you wish to enjoy the documentation benefit of named axes and can forgo the benefit of base models checking for axes of the same name having the same length, it is recommended to use type aliases instead:
+If you wish to enjoy the documentation benefit of named axes and can forgo the benefit of base models checking for axes of the same name having the same length, it is recommended to use type aliases in the meantime:
 
 ```Python
 from typing import NewType, TypeAlias
 import numpy as np
-from numdantic import NDArray, Shape
+from numdantic import NDArray
 
 # named axes using type aliases
 width: TypeAlias = int
 height: TypeAlias = int
 
 # annotate image
-image: NDArray[Shape[width, height], np.int64]
+image: NDArray[tuple[width, height], np.int64]
 ```
 
 For Python 3.12+ it is of course recommended to instead use the [new type alias syntax](https://peps.python.org/pep-0695/) instead.
@@ -328,8 +361,6 @@ For axes of specific length, you can of course create similar type aliases of sp
 ```PYthon
 Width720: TypeAlias = Literal[720]
 ```
-
-In the future, `numdantic` might try to solve this issue, but whether that is even feasible is yet to be determined.
 
 ### Using Python built-ins as dtype
 
@@ -350,6 +381,7 @@ Here are some miscellaneous tips and tricks for using `numdantic`:
 
 - [`numpydantic`](https://github.com/p2p-ld/numpydantic) together with [`nptyping`](https://github.com/ramonhagenaars/nptyping) - Support for `numpy` arrays, `pandas` data frames, `dask` arrays, `hdf5` and `zarr`. Typing is simple and includes shape typing using string literals. Includes JSON schema generation and proper JSON serialization for all data structures.
 - [`pydantic-numpy`](https://github.com/caniko/pydantic-numpy) - Support for `numpy` arrays, including loading from .npy and .npz files. Provides type factory for different shapes and dtypes.
+- [`optype`](https://github.com/jorenham/optype) - While this library does not provide support for `pydantic` validation of `numpy` arrays, it provides useful typing support for `numpy` arrays by means of versatile protocols.
 
 ## Contributing
 
