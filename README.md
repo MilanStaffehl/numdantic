@@ -75,7 +75,7 @@ from numdantic import NDArray
 matrix: NDArray[tuple[int, int], np.int32] = np.random.rand(2, 2)
 ```
 
-This variable is now typed as a 2D array, with its axes having unspecified length, and of dtype `np.int32`. Static type checker such as `mypy` will now be able to check if you are using the variable correctly. Both shape and dtype are a lot more flexible than shown here though; you can learn about specifying axis lengths and same-length-axes in the [_Concepts_](#concepts) section below.
+This variable is now typed as a 2D array, with its axes having unspecified length, and of dtype `np.int32`. Static type checker such as `mypy` will now be able to check if you are using the variable correctly. Both shape and dtype are a lot more flexible than shown here though; you can learn about specifying axis lengths and same-length-axes in the [Concepts](#concepts) section below.
 
 If you wish to use a `numpy` array inside of a `pydantic` base model, you can use `NDArray` as an annotation for the corresponding field, and it will work out-of-the-box:
 
@@ -162,6 +162,7 @@ video_frame: NDArray[tuple[Width, Height, RGBAColor], np.int64]
 This annotation will ensure that the axes are always ordered the correct way. For example, attempting to use `video_frame` in a function that accepts an array typed as `NDArray[tuple[Height, Width, RGBAColor], np.int64]` will cause type checkers to raise an error.
 
 > [!NOTE]
+>
 > There is one significant caveat to this approach: you cannot mix unspecified axes and named axes, i.e. attempting to assign `video_frame` to a variable typed to have shape `tuple[int, int, int]` does not work and will cause type checkers to report an error. Once you opt for named axes, you will have to commit to them. Learn more about this limitation and why it occurs in the section about [Limitations](#limitations).
 
 Named axes have a secondary benefit that only comes into play when validating them with `pydantic`: If you use two or more axes of the same name in a base model field annotation, `pydantic` will check that they all have the same length:
@@ -251,9 +252,11 @@ pos_ints: NDArray[tuple[int, int], np.unsignedinteger[Any]]
 See the `numpy` documentation for [scalar types](https://numpy.org/doc/stable/reference/arrays.scalars.html#built-in-scalar-types) for an overview over what scalar types `numpy` offers.
 
 > [!IMPORTANT]
+>
 > As generics, these scalar types must be supplied with a type parameter. This type parameter specifies the size of the type (for example 32 bit vs 64 bit). Type checkers actually convert all scalar types to one of these generics. For example, `numpy.int64` is converted into `numpy.signedinteger[numpy._typing._64Bit]` during type checking. In order to actually receive a type that is agnostic to the size of the dtype, it is required to use `Any` as type parameter - hence the use of `Any` in the example above.
 
 > [!NOTE]
+>
 > Depending on your version of `numpy`, using these generic scalar types to *create* arrays may be deprecated. You will get a corresponding runtime warning if you use them to instantiate an array. As a result, you might also get such a warning when you use a scalar generic inside a `pydantic` validator and the validator attempts to create an array using the generic as dtype. In such a case, you can either suppress this warning, or choose another appropriate scalar dtype. The latter is recommended. In *type annotations*, the generic scalars are all fine and should cause no problems.
 
 ### Behavior in lax vs. strict mode
@@ -358,7 +361,7 @@ For Python 3.12+ it is of course recommended to instead use the [new type alias 
 
 For axes of specific length, you can of course create similar type aliases of specific literals:
 
-```PYthon
+```Python
 Width720: TypeAlias = Literal[720]
 ```
 
