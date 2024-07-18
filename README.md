@@ -287,8 +287,8 @@ my_model = MyModel(array=[[1, 2], [3, 4]])
 serialization = my_model.model_dump()
 
 # check the output
-assert isinstance(my_model["array"], np.ndarray)  # passes
-assert my_model["array"].dtype is np.dtype(np.int64)  # passes
+assert isinstance(serialization["array"], np.ndarray)  # passes
+assert serialization["array"].dtype is np.dtype(np.int64)  # passes
 ```
 
 ## Limitations
