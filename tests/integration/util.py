@@ -8,11 +8,35 @@ from __future__ import annotations
 import os
 import subprocess
 from pathlib import Path
-from typing import Any, TextIO
+from typing import Any, Final, TextIO
 
+import numpy as np
 import pytest
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_PROJECT_ROOT: Path = Path(__file__).resolve().parents[2]
+
+# numpy version: numpy 2.1+ behaves differently from pre-2.1
+_NP_VERSION: Final[list[str]] = np.__version__.split(".")
+NP_MAJOR: Final[int] = int(_NP_VERSION[0])
+NP_MINOR: Final[int] = int(_NP_VERSION[1])
+NP_PATCH: Final[int] = int(_NP_VERSION[2])
+IS_PRE_NUMPY_2_1: Final[bool] = NP_MAJOR < 2 or (
+    NP_MAJOR == 2 and NP_MINOR < 1
+)
+
+# determine whether shapes can be narrowed in assignments
+ASSIGN_IGNORE: str
+if NP_MAJOR == 2 and NP_MINOR == 2:
+    # In numpy 2.2, NDArray is typed to have covariant shape parameter
+    # tuple[int, ...], which causes issues when assigning return values
+    # typed as generic NDArray to a value with a narrower shape type.
+    # We ignore these issues until numpy offers a fix.
+    ASSIGN_IGNORE = "  # type: ignore[assignment]"
+else:
+    # Pre numpy==2.2, the shape type parameter of NDArray was set to Any,
+    # and in 2.3+ it is typed to be tuple[Any, ...], both of which can
+    # be arbitrarily narrowed, thus requiring no ignore statement.
+    ASSIGN_IGNORE = ""
 
 
 def assert_type_check_passes(

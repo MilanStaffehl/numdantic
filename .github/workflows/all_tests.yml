@@ -22,6 +22,12 @@ jobs:
         py-version:
           - "3.11"
           - "3.12"
+          - "3.13"
+        np-version:
+          - "numpy==1.26.4"  # latest v1 release
+          - "numpy==2.1.3"  # ndarray shape parameter covariant
+          - "numpy==2.2.6"  # NDArray shape typed as tuple[int, ...]
+          - "numpy"  # latest
 
     runs-on: ${{ matrix.os }}
 

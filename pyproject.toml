@@ -13,7 +13,8 @@ keywords = ["typing", "types", "numpy", "pydantic", "validation", "type hints", 
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "pydantic >= 2.5.2, <= 3.0.0", "numpy"
+    "pydantic >= 2.5.2, < 3.0.0",
+    "numpy < 3.0.0"
 ]
 classifiers = [
     "Natural Language :: English",
@@ -59,7 +60,6 @@ lint = [
     "isort",
     "black",
     "mypy",
-    "pytest",
     "pytest>=7.0",
     "pytest-mock>=3.11.1",
     "pytest-subtests>=0.12.0",
