@@ -5,7 +5,7 @@ Test the integration between the custom numpy validator and pydantic.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, NewType
+from typing import TYPE_CHECKING, Literal, NewType, TypeAlias
 
 import numpy as np
 import numpy.typing as npt
@@ -20,6 +20,11 @@ if TYPE_CHECKING:
 # custom axis length type, based on int
 AxisLen = NewType("AxisLen", int)
 AxisLen2 = NewType("AxisLen2", int)
+
+# custom types for lengthy aliases
+ComplexAxisLenType: TypeAlias = NDArray[
+    tuple[int, AxisLen, AxisLen2, AxisLen, AxisLen2], np.int32
+]
 
 
 class BasicTestModel(BaseModel):
@@ -44,7 +49,7 @@ class StrictTestModel(BaseModel):
 class UnspecificDtypeModel(BaseModel):
     """Test model for a 2x2 array, but with generic floating point type"""
 
-    matrix: NDArray[tuple[Literal[2], Literal[2]], np.floating]  # type: ignore
+    matrix: NDArray[tuple[Literal[2], Literal[2]], np.floating]
 
 
 class UnspecifiedAxisLengthModel(BaseModel):
@@ -225,16 +230,16 @@ def test_numpy_validation_from_sequence(subtests: SubTests) -> None:
     for seq_type in (list, tuple):
         with subtests.test(msg=f"{seq_type.__name__}"):
             test_sequence = seq_type([[1, 2], [3, 4]])
-            my_model = BasicTestModel(matrix=test_sequence)
+            my_model = BasicTestModel(matrix=test_sequence)  # type: ignore[arg-type]
             serialization = my_model.model_dump()
             assert "matrix" in serialization
             assert serialization["matrix"].dtype is np.dtype(np.int32)
             assert serialization["matrix"].shape == (2, 2)
 
             # scenario that has an inhomogeneity
-            test_sequence = [[1, 2], [3, 4, 5]]
+            test_sequence = seq_type([[1, 2], [3, 4, 5]])
             with pytest.raises(ValidationError) as excinfo:
-                BasicTestModel(matrix=test_sequence)
+                BasicTestModel(matrix=test_sequence)  # type: ignore[arg-type]
             expected_msg = (
                 "1 validation error for BasicTestModel\nmatrix\n  Received "
                 "sequence has inhomogeneous part or invalid element types. "
@@ -341,13 +346,13 @@ def test_numpy_validation_new_type_as_axis_length_shape(
 def test_numpy_validation_new_type_as_axis_length_error_msg() -> None:
     """Test accurate error message for more complex shapes"""
     # correct case
-    test_array = np.ones((4, 1, 2, 1, 2), dtype=np.int32)
+    test_array: ComplexAxisLenType = np.ones((4, 1, 2, 1, 2), dtype=np.int32)  # type: ignore[assignment]
     my_model = ComplexAxisLengthModel(matrix=test_array)
     serialization = my_model.model_dump()
     np.testing.assert_equal(test_array, serialization["matrix"])
 
     # singular invalid case
-    test_array = np.ones((4, 1, 2, 1, 3), dtype=np.int32)
+    test_array = np.ones((4, 1, 2, 1, 3), dtype=np.int32)  # type: ignore[assignment]
     with pytest.raises(ValidationError) as excinfo:
         ComplexAxisLengthModel(matrix=test_array)
     expected_msg = (
@@ -359,7 +364,7 @@ def test_numpy_validation_new_type_as_axis_length_error_msg() -> None:
     assert expected_msg in str(excinfo.value)
 
     # double invalid case
-    test_array = np.ones((4, 1, 2, 3, 4), dtype=np.int32)
+    test_array = np.ones((4, 1, 2, 3, 4), dtype=np.int32)  # type: ignore[assignment]
     with pytest.raises(ValidationError) as excinfo:
         ComplexAxisLengthModel(matrix=test_array)
     expected_msg_part_one = (
@@ -520,7 +525,7 @@ def test_numpy_validation_indeterminate_dims_named_axes_len_agnostic(
 
     for test_array in test_arrays:
         with subtests.test(msg=f"Model NewType, shape {test_array.shape}"):
-            my_model = IndeterminateDimSameLengthAxisModel(matrix=test_array)
+            my_model = IndeterminateDimSameLengthAxisModel(matrix=test_array)  # type: ignore[arg-type]
             serialization = my_model.model_dump()
             assert "matrix" in serialization
             np.testing.assert_array_equal(test_array, serialization["matrix"])
