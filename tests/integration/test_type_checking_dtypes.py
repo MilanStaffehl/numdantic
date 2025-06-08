@@ -12,6 +12,7 @@ from typing import TextIO
 import numpy as np
 import pytest
 from util import (
+    ASSIGN_IGNORE,
     COMPLEX_TYPES,
     FLOATING_TYPES,
     INT_TYPES,
@@ -46,7 +47,7 @@ def test_type_checking_dtypes_dtype_hierarchy(
     for i, parent_dtype in enumerate(parents):
         test_string += (
             f"x_{i:02d}: NDArray[tuple[int], np.{dtype}] = "
-            f"np.array([1], dtype=np.{dtype})\n"
+            f"np.array([1], dtype=np.{dtype}){ASSIGN_IGNORE}\n"
             f"y_{i:02d}: NDArray[tuple[int], np.{parent_dtype}] = "
             f"x_{i:02d}\n\n"
         )
@@ -88,7 +89,7 @@ def test_type_checking_dtypes_interoperable_types(
         # append to test string
         test_string += (
             f"x_{i:02d}: NDArray[tuple[int], np.{actual_type}] = "
-            f"np.array([1], dtype=np.{actual_type})\n"
+            f"np.array([1], dtype=np.{actual_type}){ASSIGN_IGNORE}\n"
             f"y_{i:02d}: NDArray[tuple[int], np.{target_type}] = "
             f"x_{i:02d}{ignore}\n\n"
         )
@@ -128,7 +129,7 @@ def test_type_checking_dtypes_incompatible_types(
         # append to test string
         test_string += (
             f"x_{i:02d}: NDArray[tuple[int], np.{actual_type}] = "
-            f"np.array([1], dtype=np.{actual_type})\n"
+            f"np.array([1], dtype=np.{actual_type}){ASSIGN_IGNORE}\n"
             f"y_{i:02d}: NDArray[tuple[int], np.{target_type}] = "
             f"x_{i:02d}  # type: ignore\n\n"
         )
@@ -177,7 +178,7 @@ def test_type_checking_dtypes_generics_covariant(
     for i, target_dtype in enumerate(supported_dtypes):
         test_string += (
             f"x_{i:02d}: NDArray[tuple[int], np.{generic_dtype}] = "
-            f"np.array([1], dtype=np.{generic_dtype})\n"
+            f"np.array([1], dtype=np.{generic_dtype}){ASSIGN_IGNORE}\n"
             f"y_{i:02d}: NDArray[tuple[int], np.{target_dtype}] = "
             f"x_{i:02d}  # type: ignore\n\n"
         )
@@ -217,7 +218,7 @@ def test_type_checking_dtypes_generics_contravariant(
     for i, target_dtype in enumerate(supported_dtypes):
         test_string += (
             f"x_{i:02d}: NDArray[tuple[int], np.{generic_dtype}] = "
-            f"np.array([1], dtype=np.{generic_dtype})\n"
+            f"np.array([1], dtype=np.{generic_dtype}){ASSIGN_IGNORE}\n"
             f"y_{i:02d}: NDArray[tuple[int], np.{target_dtype}] = "
             f"x_{i:02d}  # type: ignore\n\n"
         )
