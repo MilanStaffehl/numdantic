@@ -37,7 +37,7 @@ jobs:
 
     - name: Format check with black
       run: |
-        black --check --config pyproject.toml .
+        black --check --diff --color --config pyproject.toml .
 
     - name: Code complexity with radon
       run: |

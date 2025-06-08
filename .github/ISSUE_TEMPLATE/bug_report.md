@@ -29,7 +29,7 @@ Select which of the following tools you used:
 
 **OS and version info**
 Please complete the following information:
- - OS: 
+ - OS:
  - `numdantic` version:
  - `numpy` version:
  - `pydantic` version:
