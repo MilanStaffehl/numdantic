@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 def test_type_checking_shapes_exact_matches(
-    temp_file: tuple[TextIO, Path]
+    temp_file: tuple[TextIO, Path],
 ) -> None:
     """Test that exactly matching shape annotations pass type check"""
     # fmt: off
@@ -39,7 +39,7 @@ def test_type_checking_shapes_exact_matches(
 
 
 def test_type_checking_shapes_mismatched_shapes(
-    temp_file: tuple[TextIO, Path]
+    temp_file: tuple[TextIO, Path],
 ) -> None:
     """Test that type checkers raise an error when shapes are mismatched"""
     # fmt: off
@@ -73,7 +73,7 @@ def test_type_checking_shapes_mismatched_shapes(
     strict=True,
 )
 def test_type_checking_shapes_literal_with_int(
-    temp_file: tuple[TextIO, Path]
+    temp_file: tuple[TextIO, Path],
 ) -> None:
     """Test that literals are compatible with generic integer shapes"""
     # fmt: off
@@ -99,7 +99,7 @@ def test_type_checking_shapes_literal_with_int(
     strict=True,
 )
 def test_type_checking_shapes_named_axis_with_int(
-    temp_file: tuple[TextIO, Path]
+    temp_file: tuple[TextIO, Path],
 ) -> None:
     """Test that named axes are compatible with generic integer shapes"""
     # fmt: off
@@ -121,7 +121,7 @@ def test_type_checking_shapes_named_axis_with_int(
 
 
 def test_type_checking_shapes_named_axis_with_literal(
-    temp_file: tuple[TextIO, Path]
+    temp_file: tuple[TextIO, Path],
 ) -> None:
     """Test that named axes are incompatible with literal shapes"""
     # fmt: off
@@ -144,7 +144,7 @@ def test_type_checking_shapes_named_axis_with_literal(
 
 
 def test_type_checking_shapes_mixed_shape_annotations(
-    temp_file: tuple[TextIO, Path]
+    temp_file: tuple[TextIO, Path],
 ) -> None:
     """Test that multiple types can be used in one shape type"""
     # fmt: off
@@ -162,7 +162,7 @@ def test_type_checking_shapes_mixed_shape_annotations(
 
 
 def test_type_checking_shapes_switched_named_axes(
-    temp_file: tuple[TextIO, Path]
+    temp_file: tuple[TextIO, Path],
 ) -> None:
     """Test that switched named axes cause an error"""
     # fmt: off
@@ -182,7 +182,7 @@ def test_type_checking_shapes_switched_named_axes(
 
 
 def test_type_checking_shapes_indeterminate_dimensionality(
-    temp_file: tuple[TextIO, Path]
+    temp_file: tuple[TextIO, Path],
 ) -> None:
     """Test that shapes can be tuple[int, ...]"""
     # fmt: off
@@ -203,7 +203,7 @@ def test_type_checking_shapes_indeterminate_dimensionality(
     strict=True,
 )
 def test_type_checking_shapes_mixing_indeterminate_dims(
-    temp_file: tuple[TextIO, Path]
+    temp_file: tuple[TextIO, Path],
 ) -> None:
     """Test mixing shapes of indeterminate dimensionality with other shapes"""
     # fmt: off
