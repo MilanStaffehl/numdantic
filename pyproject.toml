@@ -60,7 +60,6 @@ lint = [
     "isort",
     "black",
     "mypy",
-    "pytest",
     "pytest>=7.0",
     "pytest-mock>=3.11.1",
     "pytest-subtests>=0.12.0",
