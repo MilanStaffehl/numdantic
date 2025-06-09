@@ -64,7 +64,10 @@ def test_type_checking_dtypes_dtype_hierarchy(
 # TODO: remove xfails once resolved
 _mark = pytest.mark.xfail(
     NP_MAJOR == 2 and NP_MINOR > 1,
-    reason="Inconsistent behavior of scalar aliases (https://github.com/numpy/numpy/issues/29151)",
+    reason=(
+        "Inconsistent behavior of scalar aliases "
+        "(https://github.com/numpy/numpy/issues/29151)"
+    ),
     strict=True,
 )
 _DTYPE_LIST_MARKED = (
