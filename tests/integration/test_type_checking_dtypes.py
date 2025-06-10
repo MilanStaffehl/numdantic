@@ -16,6 +16,8 @@ from util import (
     COMPLEX_TYPES,
     FLOATING_TYPES,
     INT_TYPES,
+    NP_MAJOR,
+    NP_MINOR,
     NP_SCALAR_TYPES_PARENTS,
     UINT_TYPES,
     assert_type_check_passes,
@@ -59,7 +61,24 @@ def test_type_checking_dtypes_dtype_hierarchy(
     )
 
 
-@pytest.mark.parametrize("dtype_list", _DTYPE_LIST)
+# TODO: remove xfails once resolved
+_mark = pytest.mark.xfail(
+    NP_MAJOR == 2 and NP_MINOR > 1,
+    reason=(
+        "Inconsistent behavior of scalar aliases "
+        "(https://github.com/numpy/numpy/issues/29151)"
+    ),
+    strict=True,
+)
+_DTYPE_LIST_MARKED = (
+    INT_TYPES,
+    UINT_TYPES,
+    pytest.param(FLOATING_TYPES, marks=_mark),
+    pytest.param(COMPLEX_TYPES, marks=_mark),
+)
+
+
+@pytest.mark.parametrize("dtype_list", _DTYPE_LIST_MARKED)
 def test_type_checking_dtypes_interoperable_types(
     dtype_list: list[str], temp_file: tuple[TextIO, Path]
 ) -> None:
