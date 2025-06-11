@@ -132,7 +132,7 @@ Type checkers will accept this notation. Moreover, when used inside of a `pydant
 
 > [!NOTE]
 >
-> There is one significant caveat to this approach: you cannot mix unspecified axes and axes of specific length, i.e. attempting to assign `widescreen_image` to a variable typed to have shape `tuple[int, int, int]` does not work and will cause type checkers to report an error. Once you opt for literals in your shapes, you will have to commit to them. Learn more about this limitation and why it occurs in the section about [Limitations](#limitations).
+> In `numpy` versions before 2.1.0, you cannot mix unspecified axes and axes of specific length, i.e. attempting to assign `widescreen_image` to a variable typed to have shape `tuple[int, int, int]` does not work and will cause type checkers to report an error. Learn more about this limitation and why it occurs in the section about [Limitations](#limitations).
 
 ### Named axes
 
@@ -163,7 +163,7 @@ This annotation will ensure that the axes are always ordered the correct way. Fo
 
 > [!NOTE]
 >
-> There is one significant caveat to this approach: you cannot mix unspecified axes and named axes, i.e. attempting to assign `video_frame` to a variable typed to have shape `tuple[int, int, int]` does not work and will cause type checkers to report an error. Once you opt for named axes, you will have to commit to them. Learn more about this limitation and why it occurs in the section about [Limitations](#limitations).
+> In `numpy` versions before 2.1.0, you cannot mix unspecified axes and named axes, i.e. attempting to assign `video_frame` to a variable typed to have shape `tuple[int, int, int]` does not work and will cause type checkers to report an error. Learn more about this limitation and why it occurs in the section about [Limitations](#limitations).
 
 Named axes have a secondary benefit that only comes into play when validating them with `pydantic`: If you use two or more axes of the same name in a base model field annotation, `pydantic` will check that they all have the same length:
 
@@ -231,7 +231,7 @@ You can also use named axes this way. In this case, `pydantic` will check that a
 
 > [!NOTE]
 >
-> Unfortunately, this shape type has the same limitation as the other shape types: it cannot be mixed with other shape types. For example, an array typed as having shape `tuple[int, int]` can not be assigned to a variable typed as `NDArray[tuple[int, ...], np.generic]`. This is a serious limitation that is being worked on. See the section on [Limitations](#limitations) to learn more.
+> In `numpy` versions before 2.1.0, shapes of indeterminate dimensionality cannot be mixed with other shape types. For example, an array typed as having shape `tuple[int, int]` can not be assigned to a variable typed as `NDArray[tuple[int, ...], np.generic]`. See the section on [Limitations](#limitations) to learn more.
 
 ### Generic scalar types
 
@@ -257,7 +257,7 @@ See the `numpy` documentation for [scalar types](https://numpy.org/doc/stable/re
 
 > [!NOTE]
 >
-> Depending on your version of `numpy`, using these generic scalar types to *create* arrays may be deprecated. You will get a corresponding runtime warning if you use them to instantiate an array. As a result, you might also get such a warning when you use a scalar generic inside a `pydantic` validator and the validator attempts to create an array using the generic as dtype. In such a case, you can either suppress this warning, or choose another appropriate scalar dtype. The latter is recommended. In *type annotations*, the generic scalars are all fine and should cause no problems.
+> Depending on your version of `numpy`, using these generic scalar types to *create* arrays may be deprecated. You will get a corresponding runtime warning if you use them to instantiate an array. As a result, you might also get such a warning when you use a scalar generic inside a `pydantic` validator and the validator attempts to create an array using the generic as dtype. In such a case, you can either suppress this warning, or choose an explicit scalar dtype. The latter is recommended. In *type annotations*, the generic scalars should cause no problems.
 
 ### Behavior in lax vs. strict mode
 
@@ -313,9 +313,9 @@ Until then, you will either have to pay close attention to assignments, implemen
 
 Fortunately, there is a saving grace: type checkers _will_ detect mismatches in types further down the line, for example if you try to use an array typed with `numdantic` as a 2D array in a function that is typed with `numdantic` to only accept 3D arrays, a type checker will catch this mistake.
 
-### Mixing of named axes, literal axes and generic axes
+### Mixing of named axes, literal axes and generic axes (`numpy<2.1`)
 
-It is not possible to use named axes created with `NewType` in places that are typed using `int`:
+In `numpy` versions before 2.1.0, it is not possible to use named axes created with `NewType` in places that are typed using `int`:
 
 ```Python
 from typing import NewType
@@ -340,7 +340,7 @@ transpose_image(image)
 
 Similarly, you cannot mix shapes with literal integers such as `tuple[Literal[2], Literal[2]]` with named axes or generic axes typed with `int`. All these combinations will cause your type checker to issue an error.
 
-This happens because the type parameter for shape in the `numpy.ndarray` type is currently typed as invariant. As a result, type checkers are not able to accept subtypes of `int` inside of a `tuple` to be valid in place of actual `int` types. There are efforts on the side of the `numpy` developers to make this parameter covariant however, and simultaneously, `numdantic` might provide its own solution in the future.
+This happens because the type parameter for shape in the `numpy.ndarray` type is typed as invariant in all `numpy` version prior to 2.1. As a result, type checkers are not able to accept subtypes of `int` inside of a `tuple` to be valid in place of actual `int` types. With the release of `numpy` version 2.1.0, the shape type parameter of `numpy.ndarray` is now covariant and bound to `tuple[int, ...]`, so this issue no longer exists from this version onwards.
 
 If you wish to enjoy the documentation benefit of named axes and can forgo the benefit of base models checking for axes of the same name having the same length, it is recommended to use type aliases in the meantime:
 
@@ -359,12 +359,6 @@ image: NDArray[tuple[width, height], np.int64]
 
 For Python 3.12+ it is of course recommended to instead use the [new type alias syntax](https://peps.python.org/pep-0695/) instead.
 
-For axes of specific length, you can of course create similar type aliases of specific literals:
-
-```Python
-Width720: TypeAlias = Literal[720]
-```
-
 ### Using Python built-ins as dtype
 
 Currently, `numdantic` does not allow using Python built-in types as dtype for array annotations. This is due to how `numpy` types their `ndarray` type: as dtype, they only allow subtypes of `np.generic`. This is despite the fact that `numpy` has, for quite some time now, also accepted built-in types such as `int` or `float` as dtypes. The reasoning probably is that these built-in types are converted into proper `numpy` dtypes before an `ndarray` is constructed.
@@ -376,7 +370,7 @@ In principle, this can be remedied by simply adding built-in types to the allowe
 Here are some miscellaneous tips and tricks for using `numdantic`:
 
 - Can't figure out which dtypes are compatible with which other dtypes? You can run the helper script `scripts/compatible_dtypes.py` to get a handy table of dtype compatibility! You can even pipe the output into a valid `.rst` file. The table shows what array dtypes (rows) can be assigned to what target dtypes (columns), and it also includes useful information on your platform which can give an insight into the implementation of `numpy` dtypes on your machine.
-- To get the most accurate type checking possible, use the [`numpy` plug-in](https://pydoc.dev/numpy/latest/numpy.typing.mypy_plugin.html) for `mypy`. This plug-in will supply `mypy` with implementation details of the different dtypes on your machine and makes type checking of dtypes behave more predictably.
+- In `numpy` version before 2.3.0, use the [`numpy` plug-in](https://pydoc.dev/numpy/latest/numpy.typing.mypy_plugin.html) for `mypy` to get the most accurate type checking possible. This plug-in will supply `mypy` with implementation details of the different dtypes on your machine and makes type checking of dtypes behave more predictably. Note that the plug-in is deprecated from `numpy` version 2.3.0 and onwards, and no longer needed.
 
 ## Alternatives
 
