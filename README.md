@@ -25,10 +25,10 @@ Typing support for [`numpy`](https://numpy.org/) arrays, compatible with [`pydan
   - [Arrays from sequences](#arrays-from-sequences)
 - [Limitations](#limitations)
   - [Most `numpy` functions allow wrong assignments](#most-numpy-functions-allow-wrong-assignments)
-  - [Most assignments in `numpy` 2.2 are illegal](#most-assignments-in-numpy-2.2-are-illegal)
+  - [Most assignments in `numpy` 2.2 are illegal](#most-assignments-in-numpy-22-are-illegal)
   - [Shape validation clashes with shape typing](#shape-validation-clashes-with-shape-typing)
-  - [Cannot mix axes typed with subtypes of `int` in `numpy` < 2.1](#)
-  - [Python built-ins cannot be used as dtype (yet)](#)
+  - [Cannot mix axes typed with subtypes of `int` in `numpy` < 2.1](#cannot-mix-axes-typed-with-subtypes-of-int-in-numpy--21)
+  - [Python built-ins cannot be used as dtype (yet)](#python-built-ins-cannot-be-used-as-dtype-yet)
 - [Tips & tricks](#tips--tricks)
 - [Alternatives](#alternatives)
 - [Contributing](#contributing)
@@ -357,7 +357,7 @@ my_model = MyModel(matrix=x)  # <--- fails type check
 
 This leads to type checking errors, because the shape in the model is a narrower type than that of the variable `x`. Currently, the only way to remedy this problem is to add a `# type: ignore` comment to every assignment of an array to a `pydantic` model - which pretty much defeats the purpose of typing. While a solution on `numdantic` side is in the works, this limitation will persist until a good solution is found.
 
-###Cannot mix axes typed with subtypes of `int` in `numpy` < 2.1
+### Cannot mix axes typed with subtypes of `int` in `numpy` < 2.1
 
 Before `numpy` version 2.1.0, arrays typed with subtypes of `int` in a shape tuple were not allowed to be assigned to variables that have a shape typed using `int`. This affects also arrays who have their shape typed using `Literal` or `NewType`:
 
