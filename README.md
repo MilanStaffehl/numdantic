@@ -244,7 +244,7 @@ You can also use named axes this way. In this case, `pydantic` will check that a
 
 The above sections lay out a lot of rules and exceptions for shape typing. You may wonder: so what is and what isn't allowed in shape typing? What shapes play well with each other, and which do not? The answer depends in part on the version of `numpy` you are using. The following tables give you an overview over what shapes you can assign to which target shape in your version of `numpy`.
 
-The tables can be read as follows: assume we want to assign an array of shape `tuple[SourceShape]` to a variable or pass it to a function as argument typed to expect shape `tuple[TargetShape]`. The table then signifies if this assignment passes type checking (:heavy_check_mark:), if type checkers reject it because the assignment *should be* illegal (:x:), or if type checkers reject it due to a limitation, although it should be legal ​(:warning:)​ . The columns list different options for `TargetShape`​, and the rows list `SourceShape`.
+The tables can be read as follows: assume we want to assign an array of shape `tuple[SourceShape]` to a variable or pass it to a function as argument typed to expect shape `tuple[TargetShape]`. The table then signifies if this assignment passes type checking ( :heavy_check_mark: ), if type checkers reject it because the assignment *should be* illegal ( :x: ), or if type checkers reject it due to a limitation, although it should be legal ​( :warning: )​ . The columns list different options for `TargetShape`​, and the rows list `SourceShape`.
 
 The table uses `L[2]` as a shorthand example for literal axis lengths, and `Axis` as a shorthand for any axis length created with `NewType`.
 
