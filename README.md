@@ -20,6 +20,7 @@ Typing support for [`numpy`](https://numpy.org/) arrays, compatible with [`pydan
   - [Named axes](#named-axes)
   - [Mixing of shape types](#mixing-of-shape-types)
   - [Arrays of indeterminate dimensionality](#arrays-of-indeterminate-dimensionality)
+  - [Shape typing overview](#shape-typing-overview)
   - [Generic scalar types](#generic-scalar-types)
   - [Behavior in lax vs. strict mode](#behavior-in-lax-vs-strict-mode)
   - [Arrays from sequences](#arrays-from-sequences)
@@ -204,6 +205,10 @@ x: NDArray[tuple[int, SomeAxis, L[2], SomeAxis], np.int32]
 
 For each of these axes, type checkers and `pydantic` will apply the rules described above. In a `pydantic` model this would mean that the second and fourth axes of `x` must have the same length and the third axis must be of length 2.
 
+>  [!NOTE]
+>
+> Note however that the normal rules of typing still apply and you cannot mix different shape types *among each other*: since literal integers and new types based on `int` are subtypes of `int`, you can only assign arrays typed with them to variables typed using `int`, but not the other way around. Similarly, you cannot assign an array typed with `NewType` to a variable typed with `Literal` and vice versa. See the [Shape typing overview](#shape-typing-overview) section for an overview.
+
 ### Arrays of indeterminate dimensionality
 
 If you do not know the dimensionality of your array or wish to type an array that can have arbitrary shape and dimensionality, you can use a tuple of indeterminate size, using the Python built-in ellipsis literal `...`:
@@ -234,6 +239,46 @@ You can also use named axes this way. In this case, `pydantic` will check that a
 > [!NOTE]
 >
 > In `numpy` versions before 2.1.0, shapes of indeterminate dimensionality cannot be mixed with other shape types. For example, an array typed as having shape `tuple[int, int]` can not be assigned to a variable typed as `NDArray[tuple[int, ...], np.generic]`. See the section on [Limitations](#limitations) to learn more.
+
+### Shape typing overview
+
+The above sections lay out a lot of rules and exceptions for shape typing. You may wonder: so what is and what isn't allowed in shape typing? What shapes play well with each other, and which do not? The answer depends in part on the version of `numpy` you are using. The following tables give you an overview over what shapes you can assign to which target shape in your version of `numpy`.
+
+The tables can be read as follows: assume we want to assign an array of shape `tuple[SourceShape]` to a variable or pass it to a function as argument typed to expect shape `tuple[TargetShape]`. The table then signifies if this assignment passes type checking (:heavy_check_mark:), if type checkers reject it because the assignment *should be* illegal (:x:), or if type checkers reject it due to a limitation, although it should be legal ​(:warning:)​ . The columns list different options for `TargetShape`​, and the rows list `SourceShape`.
+
+The table uses `L[2]` as a shorthand example for literal axis lengths, and `Axis` as a shorthand for any axis length created with `NewType`.
+
+<details>
+	<summary>numpy < 2.1</summary>
+
+|              |     `int, int`     |    `L[2], L[2]`    |    `Axis, Axis`    |     `int, ...`     |    `L[2], ...`     |    `Axis, ...`     |
+| :----------- | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
+| `int, int`   | :heavy_check_mark: |        :x:         |        :x:         |     :warning:      |        :x:         |        :x:         |
+| `L[2], L[2]` |     :warning:      | :heavy_check_mark: |        :x:         |     :warning:      |     :warning:      |        :x:         |
+| `Axis, Axis` |     :warning:      |        :x:         | :heavy_check_mark: |     :warning:      |        :x:         |     :warning:      |
+| `int, ...`   |        :x:         |        :x:         |        :x:         | :heavy_check_mark: |        :x:         |        :x:         |
+| `L[2], ...`  |        :x:         |        :x:         |        :x:         |     :warning:      | :heavy_check_mark: |        :x:         |
+| `Axis, ...`  |        :x:         |        :x:         |        :x:         |     :warning:      |        :x:         | :heavy_check_mark: |
+
+:heavy_check_mark:: Passes type check, :x:: Correctly fails type check, :warning:: Unexpectedly fails type check
+
+</details>
+
+<details>
+	<summary>numpy >= 2.1</summary>
+
+|              |     `int, int`     |    `L[2], L[2]`    |    `Axis, Axis`    |     `int, ...`     |    `L[2], ...`     |    `Axis, ...`     |
+| :----------- | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
+| `int, int`   | :heavy_check_mark: |        :x:         |        :x:         | :heavy_check_mark: |        :x:         |        :x:         |
+| `L[2], L[2]` | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
+| `Axis, Axis` | :heavy_check_mark: |        :x:         | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |
+| `int, ...`   |        :x:         |        :x:         |        :x:         | :heavy_check_mark: |        :x:         |        :x:         |
+| `L[2], ...`  |        :x:         |        :x:         |        :x:         | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
+| `Axis, ...`  |        :x:         |        :x:         |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |
+
+:heavy_check_mark:: Passes type check, :x:: Correctly fails type check
+
+</details>
 
 ### Generic scalar types
 
