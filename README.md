@@ -20,13 +20,16 @@ Typing support for [`numpy`](https://numpy.org/) arrays, compatible with [`pydan
   - [Named axes](#named-axes)
   - [Mixing of shape types](#mixing-of-shape-types)
   - [Arrays of indeterminate dimensionality](#arrays-of-indeterminate-dimensionality)
+  - [Shape typing overview](#shape-typing-overview)
   - [Generic scalar types](#generic-scalar-types)
   - [Behavior in lax vs. strict mode](#behavior-in-lax-vs-strict-mode)
   - [Arrays from sequences](#arrays-from-sequences)
 - [Limitations](#limitations)
-  - [Wrong shapes or dtypes in assignments](#wrong-shapes-or-dtypes-in-assignments)
-  - [Mixing of named axes and generic axes](#mixing-of-named-axes-and-generic-axes)
-  - [Using Python built-ins as dtype](#using-python-built-ins-as-dtype)
+  - [Most `numpy` functions allow wrong assignments](#most-numpy-functions-allow-wrong-assignments)
+  - [Most assignments in `numpy` 2.2 are illegal](#most-assignments-in-numpy-22-are-illegal)
+  - [Shape validation clashes with shape typing](#shape-validation-clashes-with-shape-typing)
+  - [Cannot mix axes typed with subtypes of `int` in `numpy` < 2.1](#cannot-mix-axes-typed-with-subtypes-of-int-in-numpy--21)
+  - [Python built-ins cannot be used as dtype (yet)](#python-built-ins-cannot-be-used-as-dtype-yet)
 - [Tips & tricks](#tips--tricks)
 - [Alternatives](#alternatives)
 - [Contributing](#contributing)
@@ -202,6 +205,10 @@ x: NDArray[tuple[int, SomeAxis, L[2], SomeAxis], np.int32]
 
 For each of these axes, type checkers and `pydantic` will apply the rules described above. In a `pydantic` model this would mean that the second and fourth axes of `x` must have the same length and the third axis must be of length 2.
 
+>  [!NOTE]
+>
+> Note however that the normal rules of typing still apply and you cannot mix different shape types *among each other*: since literal integers and new types based on `int` are subtypes of `int`, you can only assign arrays typed with them to variables typed using `int`, but not the other way around. Similarly, you cannot assign an array typed with `NewType` to a variable typed with `Literal` and vice versa. See the [Shape typing overview](#shape-typing-overview) section for an overview.
+
 ### Arrays of indeterminate dimensionality
 
 If you do not know the dimensionality of your array or wish to type an array that can have arbitrary shape and dimensionality, you can use a tuple of indeterminate size, using the Python built-in ellipsis literal `...`:
@@ -232,6 +239,46 @@ You can also use named axes this way. In this case, `pydantic` will check that a
 > [!NOTE]
 >
 > In `numpy` versions before 2.1.0, shapes of indeterminate dimensionality cannot be mixed with other shape types. For example, an array typed as having shape `tuple[int, int]` can not be assigned to a variable typed as `NDArray[tuple[int, ...], np.generic]`. See the section on [Limitations](#limitations) to learn more.
+
+### Shape typing overview
+
+The above sections lay out a lot of rules and exceptions for shape typing. You may wonder: so what is and what isn't allowed in shape typing? What shapes play well with each other, and which do not? The answer depends in part on the version of `numpy` you are using. The following tables give you an overview over what shapes you can assign to which target shape in your version of `numpy`.
+
+The tables can be read as follows: assume we want to assign an array of shape `tuple[SourceShape]` to a variable or pass it to a function as argument typed to expect shape `tuple[TargetShape]`. The table then signifies if this assignment passes type checking ( :heavy_check_mark: ), if type checkers reject it because the assignment *should be* illegal ( :x: ), or if type checkers reject it due to a limitation, although it should be legal ​( :warning: )​ . The columns list different options for `TargetShape`​, and the rows list `SourceShape`.
+
+The table uses `L[2]` as a shorthand example for literal axis lengths, and `Axis` as a shorthand for any axis length created with `NewType`.
+
+<details>
+	<summary>numpy < 2.1</summary>
+
+|              |     `int, int`     |    `L[2], L[2]`    |    `Axis, Axis`    |     `int, ...`     |    `L[2], ...`     |    `Axis, ...`     |
+| :----------- | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
+| `int, int`   | :heavy_check_mark: |        :x:         |        :x:         |     :warning:      |        :x:         |        :x:         |
+| `L[2], L[2]` |     :warning:      | :heavy_check_mark: |        :x:         |     :warning:      |     :warning:      |        :x:         |
+| `Axis, Axis` |     :warning:      |        :x:         | :heavy_check_mark: |     :warning:      |        :x:         |     :warning:      |
+| `int, ...`   |        :x:         |        :x:         |        :x:         | :heavy_check_mark: |        :x:         |        :x:         |
+| `L[2], ...`  |        :x:         |        :x:         |        :x:         |     :warning:      | :heavy_check_mark: |        :x:         |
+| `Axis, ...`  |        :x:         |        :x:         |        :x:         |     :warning:      |        :x:         | :heavy_check_mark: |
+
+:heavy_check_mark:: Passes type check, :x:: Correctly fails type check, :warning:: Unexpectedly fails type check
+
+</details>
+
+<details>
+	<summary>numpy >= 2.1</summary>
+
+|              |     `int, int`     |    `L[2], L[2]`    |    `Axis, Axis`    |     `int, ...`     |    `L[2], ...`     |    `Axis, ...`     |
+| :----------- | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
+| `int, int`   | :heavy_check_mark: |        :x:         |        :x:         | :heavy_check_mark: |        :x:         |        :x:         |
+| `L[2], L[2]` | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
+| `Axis, Axis` | :heavy_check_mark: |        :x:         | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |
+| `int, ...`   |        :x:         |        :x:         |        :x:         | :heavy_check_mark: |        :x:         |        :x:         |
+| `L[2], ...`  |        :x:         |        :x:         |        :x:         | :heavy_check_mark: | :heavy_check_mark: |        :x:         |
+| `Axis, ...`  |        :x:         |        :x:         |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |
+
+:heavy_check_mark:: Passes type check, :x:: Correctly fails type check
+
+</details>
 
 ### Generic scalar types
 
@@ -293,9 +340,11 @@ assert serialization["array"].dtype is np.dtype(np.int64)  # passes
 
 ## Limitations
 
-### Wrong shapes or dtypes in assignments
+`numdantic` still has some considerable limitations. These are in part owed to limitations of the Python typing system, and in part due to both `numpy`'s typing support and `numdantic` itself being works in progress. This section lists limitations that you should be aware of when using `numdantic`.
 
-Due to how `numpy` handles the shape and dtype of its `ndarray` type, static type checkers will unfortunately not be able to detect a wrong shape or a wrong dtype in assignments. For example, the following code will not raise an error when running it through a type checker:
+### Most `numpy` functions allow wrong assignments
+
+Due to how `numpy` annotates most of its functions, static type checkers will unfortunately not be able to detect when a wrong shape or dtype are returned in an assignment to a typed variable. For example, the following code will not raise an error when running it through a type checker:
 
 ```Python
 import numpy as np
@@ -307,18 +356,59 @@ x: NDArray[tuple[int, int], np.int32] = np.array([1, 2, 3], dtype=np.int32)
 x: NDArray[tuple[int, int], np.int32] = np.array([[1, 2], [3, 4]], dtype=np.float32)
 ```
 
-This is due to the fact that `numpy` functions usually have return types annotations where the array shape is always `Any`, and the dtype typically is `np.generic`. Some `numpy` functions might have type annotations that accurately represent at least the dtype of their return value, but this is by no means guaranteed. There is nothing much that can be done about this, until `numpy` changes its own typing system to more accurately reflect the return values dtype and shape.
+This is due to the fact that `numpy` functions usually have return types annotations where the array shape is always `Any` (before `numpy` version 2.1) or `tuple[Any, ...]` (after `numpy` version 2.3), and the dtype typically is `np.generic`. Some `numpy` functions might have type annotations that accurately represent at least the dtype of their return value, but this is by no means guaranteed.
 
-Until then, you will either have to pay close attention to assignments, implement your own typing stubs for `numpy`, or write custom wrappers around `numpy` functions which you can then annotate appropriately, using `TypeVar` and `TypeVarTuple`.
+There is nothing much that can be done about this, until `numpy` changes its own typing system to more accurately reflect the return values dtype and shape. The recommendation is to accurately type your variables when assigning the output of a `numpy` function to it, implement your own typing stubs for `numpy`, or write custom wrappers around `numpy` functions which you can then annotate appropriately, using `TypeVar` and `TypeVarTuple`.
 
-Fortunately, there is a saving grace: type checkers _will_ detect mismatches in types further down the line, for example if you try to use an array typed with `numdantic` as a 2D array in a function that is typed with `numdantic` to only accept 3D arrays, a type checker will catch this mistake.
+### Most assignments in `numpy` 2.2 are illegal
 
-### Mixing of named axes, literal axes and generic axes (`numpy<2.1`)
+As an extreme case of the problem described above, attempting to use shape typing with `numpy` version 2.2 will cause a lot of type checking errors. Nearly all assignments to variables typed to have any shape other than `tuple[int, ...]` will fail:
 
-In `numpy` versions before 2.1.0, it is not possible to use named axes created with `NewType` in places that are typed using `int`:
+```Python
+import numpy as np
+from numdantic import NDArray
+
+# This causes a type error! It should not!
+x: NDArray[tuple[int, int], np.int32] = np.array([[1, 2],[3, 4]], dtype=np.int32)
+
+# Result: error: Incompatible types in assignment (expression has type
+# "ndarray[tuple[int, ...], dtype[signedinteger[_32Bit]]]", variable has type
+# "ndarray[tuple[int, int], dtype[signedinteger[_32Bit]]]")  [assignment]
+```
+
+This is not technically a limitation of `numdantic`, as it is caused by the shape of `numpy.typing.NDArray`, which is used in the return type annotations of most `numpy` functions. In this version it is set to `tuple[int, ...]`, causing assignments to all variables with other shapes to fail. This was fixed with version 2.3. It is therefore recommended not to use `numpy` version 2.2 with `numdantic` and instead upgrade to 2.3 directly.
+
+### Shape validation clashes with shape typing
+
+While the thought of consistent shape typing with `Literal` and `NewType` is compelling, in practice it often comes apart at the seams quite fast. For example, arrays will easily lose information on their axis length by upcasting of integer literals to `int`. Similarly, `NewType` has its own issues, most notably the fact that as a subtype of `int`, arrays typed with it can be assigned to variables who have a shape typed with `int`, but not the other way around (an issue that exists for literal integers as well, of course).
+
+Both of these issues (and many others such as the inability to accurately represent broadcasting behavior) quickly lead to the realization that true shape typing is difficult to achieve. One has to be content with typing only the dimensionality of arrays, i.e. their rank. This in effect means that *typing* array shapes is limited to tuples of `int`.
+
+Meanwhile however, shape *validation* of arrays with `pydantic` can only be performed in any meaningful fashion if the corresponding field is supplied with information of the axis length or the axis length ratios of the array. `numdantic` aims to supply this information through the same types that are used in typing. This is where the two concepts clash: *typing* requires to drop information on axis length or the ratios of axes lengths, but *validation* requires it. This leads to situations like this:
+
+```Python
+import numpy as np
+from numdantic import NDArray
+from pydantic import BaseModel
+from typing import Literal as L
+
+x: NDArray[tuple[int, int], np.int32] = np.array([[1, 2], [3, 4]], np.int32)
+
+class MyModel(BaseModel):
+    matrix: NDArray[tuple[L[2], L[2]], np.int32]
+
+my_model = MyModel(matrix=x)  # <--- fails type check
+```
+
+This leads to type checking errors, because the shape in the model is a narrower type than that of the variable `x`. Currently, the only way to remedy this problem is to add a `# type: ignore` comment to every assignment of an array to a `pydantic` model - which pretty much defeats the purpose of typing. While a solution on `numdantic` side is in the works, this limitation will persist until a good solution is found.
+
+### Cannot mix axes typed with subtypes of `int` in `numpy` < 2.1
+
+Before `numpy` version 2.1.0, arrays typed with subtypes of `int` in a shape tuple were not allowed to be assigned to variables that have a shape typed using `int`. This affects also arrays who have their shape typed using `Literal` or `NewType`:
 
 ```Python
 from typing import NewType
+from typing import Literal as L
 import numpy as np
 from numdantic import NDArray
 
@@ -327,20 +417,21 @@ Width = NewType("Width", int)
 Height = NewType("Height", int)
 
 # annotate image
-image: NDArray[tuple[Width, Height], np.int64] = np.random.rand(40, 20)
+image_1: NDArray[tuple[Width, Height], np.int64] = np.random.rand(40, 20)
+image_2: NDArray[tuple[L[40], L[20]], np.int64] = np.random.rand(40, 20)
 
 def transpose_image(
     img: NDArray[tuple[int, int], np.int32]
 ) -> NDArray[tuple[int, int], np.int32]:
     return img.transpose()
 
-# this will raise an error when checked by a type checker!
-transpose_image(image)
+# this will raise an error when using numpy<2.1.0!
+transpose_image(image_1)
+# this will raise an error, too!
+transpose_image(image_2)
 ```
 
-Similarly, you cannot mix shapes with literal integers such as `tuple[Literal[2], Literal[2]]` with named axes or generic axes typed with `int`. All these combinations will cause your type checker to issue an error.
-
-This happens because the type parameter for shape in the `numpy.ndarray` type is typed as invariant in all `numpy` version prior to 2.1. As a result, type checkers are not able to accept subtypes of `int` inside of a `tuple` to be valid in place of actual `int` types. With the release of `numpy` version 2.1.0, the shape type parameter of `numpy.ndarray` is now covariant and bound to `tuple[int, ...]`, so this issue no longer exists from this version onwards.
+This happens because the type parameter for shape in the `numpy.ndarray` type is typed as invariant in all `numpy` version prior to 2.1. As a result, type checkers are not able to accept subtypes of `int` inside of a `tuple` to be valid in place of actual `int` types. With the release of `numpy` version 2.1.0, the shape type parameter of `numpy.ndarray` is now covariant and bound to `tuple[int, ...]`, so this issue no longer exists from this version onwards. The recommendation therefore is to use `numpy` 2.1 or a later version.
 
 If you wish to enjoy the documentation benefit of named axes and can forgo the benefit of base models checking for axes of the same name having the same length, it is recommended to use type aliases in the meantime:
 
@@ -350,18 +441,18 @@ import numpy as np
 from numdantic import NDArray
 
 # named axes using type aliases
-width: TypeAlias = int
-height: TypeAlias = int
+Width: TypeAlias = int
+Height: TypeAlias = int
 
 # annotate image
-image: NDArray[tuple[width, height], np.int64]
+image: NDArray[tuple[Width, Height], np.int64]
 ```
 
 For Python 3.12+ it is of course recommended to instead use the [new type alias syntax](https://peps.python.org/pep-0695/) instead.
 
-### Using Python built-ins as dtype
+### Python built-ins cannot be used as dtype (yet)
 
-Currently, `numdantic` does not allow using Python built-in types as dtype for array annotations. This is due to how `numpy` types their `ndarray` type: as dtype, they only allow subtypes of `np.generic`. This is despite the fact that `numpy` has, for quite some time now, also accepted built-in types such as `int` or `float` as dtypes. The reasoning probably is that these built-in types are converted into proper `numpy` dtypes before an `ndarray` is constructed.
+Currently, `numdantic` does not allow using Python built-in types as dtype for array annotations. This is due to how `numpy` types their `ndarray` type: as dtype, it only allows subtypes of `np.generic`. This is despite the fact that `numpy` has, for quite some time now, also accepted built-in types such as `int` or `float` as dtypes. The reasoning probably is that these built-in types are converted into proper `numpy` dtypes before an `ndarray` is constructed.
 
 In principle, this can be remedied by simply adding built-in types to the allowed dtypes in `numdantic` and then ignoring the complaints that type checkers will have, but this could lead to unforeseen consequences and sort of defeats the whole point of type checking. Therefore, `numdantic` accepts this limitation for now.
 
