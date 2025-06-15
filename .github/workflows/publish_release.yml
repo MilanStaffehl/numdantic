@@ -20,7 +20,7 @@ jobs:
     - name: Build distribution wheel and source dist
       run: python3 -m build
     - name: Upload packages
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: distributions
         path: dist/
@@ -38,7 +38,7 @@ jobs:
 
     steps:
     - name: Download artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: distributions
         path: dist/
