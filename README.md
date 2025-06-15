@@ -470,6 +470,7 @@ Here are some miscellaneous tips and tricks for using `numdantic`:
 - [`numpydantic`](https://github.com/p2p-ld/numpydantic) together with [`nptyping`](https://github.com/ramonhagenaars/nptyping) - Support for `numpy` arrays, `pandas` data frames, `dask` arrays, `hdf5` and `zarr`. Typing is simple and includes shape typing using string literals. Includes JSON schema generation and proper JSON serialization for all data structures.
 - [`pydantic-numpy`](https://github.com/caniko/pydantic-numpy) - Support for `numpy` arrays, including loading from .npy and .npz files. Provides type factory for different shapes and dtypes.
 - [`optype`](https://github.com/jorenham/optype) - While this library does not provide support for `pydantic` validation of `numpy` arrays, it provides useful typing support for `numpy` arrays by means of versatile protocols.
+- [`numtype`](https://github.com/numpy/numtype) - Experimental typing stubs and typing support for `numpy`. While this library does not provide support for array validation with `pydantic`, it offers sophisticated support for typing, including rank typing.
 
 ## Contributing
 
