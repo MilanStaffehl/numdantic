@@ -2,7 +2,7 @@
 
 Typing support for [`numpy`](https://numpy.org/) arrays, compatible with [`pydantic`](https://docs.pydantic.dev/latest/) validation out-of-the-box.
 
-|     |     |
+| Links    | [GitHub](https://github.com/MilanStaffehl/numdantic) • [Issue tracker](https://github.com/MilanStaffehl/numdantic/issues) • [PyPI](https://pypi.org/project/numdantic/)   |
 | --- | :-: |
 | CI/CD | [![Build](https://github.com/MilanStaffehl/numdantic/actions/workflows/publish_release.yml/badge.svg)](https://github.com/MilanStaffehl/numdantic/actions/workflows/publish_release.yml) [![Tests](https://github.com/MilanStaffehl/numdantic/actions/workflows/tests.yml/badge.svg)](https://github.com/MilanStaffehl/numdantic/actions/workflows/tests.yml) [![Code Quality](https://github.com/MilanStaffehl/numdantic/actions/workflows/linting.yml/badge.svg)](https://github.com/MilanStaffehl/numdantic/actions/workflows/linting.yml) ![Covergae badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/MilanStaffehl/84965933a22ab4f94b02d8563982025d/raw/926382768a39dfd4029b26bdbecb9cab1acdff0d/numdantic_coverage.json) |
 | PyPI | ![PyPI - Version](https://img.shields.io/pypi/v/numdantic?logo=pypi&logoColor=yellow&label=PyPI&color=blue) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/numdantic?logo=Python&logoColor=yellow&label=Python&color=blue) |
