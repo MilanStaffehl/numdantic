@@ -1,4 +1,4 @@
-# numdantic
+# [numdantic](https://github.com/MilanStaffehl/numdantic)
 
 Typing support for [`numpy`](https://numpy.org/) arrays, compatible with [`pydantic`](https://docs.pydantic.dev/latest/) validation out-of-the-box.
 
