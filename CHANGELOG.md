@@ -16,7 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for arrays of indeterminate dimensionality with `tuple[int, ...]` ([9fb88d4](https://github.com/MilanStaffehl/numdantic/commit/9fb88d49012974f6b099a8e8ef29ec3346c6a4f1))
 - Support for arrays of indeterminate dimensionality with fixed axis length with `tuple[Literal[n], ...]` ([9fb88d4](https://github.com/MilanStaffehl/numdantic/commit/9fb88d49012974f6b099a8e8ef29ec3346c6a4f1))
 - Support for arrays of indeterminate dimensionality with equal axes but variable axes length with `NewType` named axes and ellipsis ([9fb88d4](https://github.com/MilanStaffehl/numdantic/commit/9fb88d49012974f6b099a8e8ef29ec3346c6a4f1))
-- Commit SHA to all `CHANGELOG` entries ([9787566](https://github.com/MilanStaffehl/numdantic/commit/9787566fb3f282e213383566a6d7da844829d703))
+- Support and documentation for `numpy` 2.1+ ([#65](https://github.com/MilanStaffehl/numdantic/pull/65), [#77](https://github.com/MilanStaffehl/numdantic/pull/77), [#78](https://github.com/MilanStaffehl/numdantic/pull/78))
+- Support for Python 3.13 ([#70](https://github.com/MilanStaffehl/numdantic/pull/70))
+- Commit SHA or pull request number to all `CHANGELOG` entries ([9787566](https://github.com/MilanStaffehl/numdantic/commit/9787566fb3f282e213383566a6d7da844829d703))
 - Section about shapes of indeterminate dimensionality to `README` ([5f2a7e4](https://github.com/MilanStaffehl/numdantic/commit/5f2a7e43fae0e918c0b31d65995f0f1a9cc8d67d))
 
 ### Changed
@@ -44,5 +46,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Typing support for `numpy` arrays ([a59d57d](https://github.com/MilanStaffehl/numdantic/commit/a59d57dd1a2bfc153be694b8bd3953f9bb55715d))
 - Support for validation of `numpy` arrays with `pydantic` ([a59d57d](https://github.com/MilanStaffehl/numdantic/commit/a59d57dd1a2bfc153be694b8bd3953f9bb55715d))
 - Helper script to determine local dtype compatibility ([7b63ac4](https://github.com/MilanStaffehl/numdantic/commit/7b63ac45766c13d660786d7b5b8e189a4b4bab3c))
-- Documentation as part of the `README` ([e500a0b](https://github.com/MilanStaffehl/numdantic/commit/e500a0bc3d75a260a40c45ca2e0e414b4654de81), [56ff3ae](https://github.com/MilanStaffehl/numdantic/commit/56ff3aec879415760fa0341b8740a9e8440a89c9), [311ca20](https://github.com/MilanStaffehl/numdantic/commit/311ca20ccd19ffaeef42729a2262835b73bdb46e), [adece74](https://github.com/MilanStaffehl/numdantic/commit/adece74c8291488eb659e9a11262bfb6817cab58), [8aa5e1d](https://github.com/MilanStaffehl/numdantic/commit/8aa5e1d2439c5a06f9a19a285c4b86a004c9a35d), [313728e](https://github.com/MilanStaffehl/numdantic/commit/313728eba0bbadd19e998262c7d781cd0cafe7a0))
-- `CHANGELOG` ([e19393c](https://github.com/MilanStaffehl/numdantic/commit/e19393c4582a19964d109f0c373cf85076a120e1))
+- Documentation as part of the `README` ([#1](https://github.com/MilanStaffehl/numdantic/pull/1), [#13](https://github.com/MilanStaffehl/numdantic/pull/13), [#15](https://github.com/MilanStaffehl/numdantic/pull/15), [adece74](https://github.com/MilanStaffehl/numdantic/commit/adece74c8291488eb659e9a11262bfb6817cab58), [8aa5e1d](https://github.com/MilanStaffehl/numdantic/commit/8aa5e1d2439c5a06f9a19a285c4b86a004c9a35d), [#29](https://github.com/MilanStaffehl/numdantic/pull/29))
+- `CHANGELOG` ([#37](https://github.com/MilanStaffehl/numdantic/pull/37))
