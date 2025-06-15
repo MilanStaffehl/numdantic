@@ -492,6 +492,12 @@ When you open a new bug report, use the `bug report` issue template and fill out
 
 If you have an idea for a new feature for `numdantic`, you can submit a feature request on the [GitHub issues](https://github.com/MilanStaffehl/numdantic/issues) using the `feature request` template. Fill out the form with your idea and give it an expressive title.
 
+### Discussion issues
+
+If you have interesting information, or know of interesting projects, discussions or developments regarding typing and validating `numpy` arrays, feel free to leave them here in a blank issue. Describe what you have found or add links. 
+
+Additionally, you can contribute to open discussion issues, marked with the `discussion` label. Everyone is welcome to chime in on these issues to help solve the problem they are about. Even if you don't have a full solution, feel free to contribute small thoughts as well!
+
 ### Pull requests
 
 If you wish to supply an implementation to a feature request or a bug report directly, you can do so by opening a pull request. You can additionally also provide code contributions for open issues that have the `help wanted` label. Go to the issue and comment that you would like to provide an implementation. Write your code on a new branch on a fork of the `numdantic` main repository, and when you are finished, create a pull request to the main repository. Your pull request will then be reviewed and you will receive feedback as soon as possible.
