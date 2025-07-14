@@ -71,7 +71,9 @@ def assert_type_check_passes(
         pytest.fail(
             f"{fail_msg}:"
             f"\nstdout:\n{output.stdout.decode('utf-8')}"
-            f"\nstderr:\n{output.stderr.decode('utf-8')}\n"
+            f"\nstderr:\n{output.stderr.decode('utf-8')}"
+            f"\ntest file:\n{test_string}\n",
+            pytrace=False,
         )
     return output
 
