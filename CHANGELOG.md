@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Bind shape type parameter of `NDArray` to `tuple[int, ...]` instead of unparametrized type alias of `tuple` ([d6328f4](https://github.com/MilanStaffehl/numdantic/commit/d6328f49179c8a0c30862a28ab11fd4299f48453))
+- Sequences are now rejected in strict mode: passing a sequence instead of an array raises a `ValidationError` ([#90](https://github.com/MilanStaffehl/numdantic/pull/90))
 
 ## [0.1.1] - 2024-07-05
 

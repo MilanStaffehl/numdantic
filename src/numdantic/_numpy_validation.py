@@ -37,7 +37,6 @@ _ExtendedShapeLike: TypeAlias = tuple[int | str, ...]
 _GenericNDArrayType: TypeAlias = numpy.typing.NDArray[np.generic]
 
 
-# pydantic validation for arrays
 def _raise_validation_error(
     x: _GenericNDArrayType,
     stack: list[PydanticCustomError],
@@ -391,7 +390,7 @@ def _get_array_validator(
     strict mode (failing if the dtype is not ``expected_type``), or
     with the behavior for lax mode (silently casting the dtype to the
     ``expected_type`` if safely possible, and only failing if this is
-    not possible. This behavior is controlled with the ``strict``
+    not possible). This behavior is controlled with the ``strict``
     parameter: if set to True, the returned function will behave as a
     validator for strict mode, otherwise it will behave as a validator
     for lax mode.
@@ -406,10 +405,10 @@ def _get_array_validator(
         ``numpy.floating``; the validation function will validate that
         the actual dtype of an array passed to it is a subtype of this
         type.
-    :param strict: Whether to return a schema for strict mode (in which
-        any dtype that is not a valid subdtype of the expected dtype
-        will raise an exception) or in lax mode (in which case mismatched
-        dtypes will be cast to the expected type).
+    :param strict: Whether to return a schema for strict mode or lax
+        mode. In strict mode, any dtype that is not a valid subdtype of
+        the expected dtype will raise an exception. In lax mode,
+        mismatched dtypes will be cast to the expected type.
     :param model_name: The name of the model which uses this validator.
         This will be used as the title of any ``ValidationError`` raised
         by this function if validation fails. Optional, if set to None,
@@ -463,6 +462,7 @@ def _get_array_validator(
 
 def _get_cast_function(
     real_type: np.generic,
+    strict: bool = False,
 ) -> Callable[[Sequence[Any] | _GenericNDArrayType], _GenericNDArrayType]:
     """
     Return a function that may cast a sequence to a numpy array.
@@ -473,6 +473,10 @@ def _get_cast_function(
 
     :param real_type: The dtype of the array that the returned function
         should produce.
+    :param strict: Whether to return a cast function for strict mode or
+        lax mode. In strict mode, any type except a numpy array will
+        raise a ValidationError. In lax mode, sequences are cast into
+        a numpy array of the correct dtype.
     :return: A function that takes as argument a sequence and turns it
         into a numpy array of dtype ``real_type``.
     """
@@ -520,6 +524,35 @@ def _get_cast_function(
                 {"exc": str(exc)},
             )
 
+    def disallow_casting(
+        x: Sequence[Any] | _GenericNDArrayType,
+    ) -> _GenericNDArrayType:
+        """
+        Return the given object only if it is a numpy array.
+
+        The function takes an arbitrary sequence, possibly including
+        other (nested) sequences, or a numpy array and rejects any
+        input that is not a numpy array by raising a ValidationError.
+        When given an array, this array is returned as-is immediately.
+
+        :param x: A sequence or nested sequence of numbers, strings or
+            bytes, or an array.
+        :raises ValidationError: If ``x`` is not a numpy array.
+        :return: A numpy array created from the sequence.
+        """
+        if not isinstance(x, np.ndarray):
+            msg: LiteralString = (
+                "Input must be a numpy array in strict mode, received "
+                "{type_x} instead."
+            )
+            raise PydanticCustomError(
+                "input_type", msg, {"type_x": type(x).__name__}
+            )
+        # input is already a numpy array, return as-is
+        return x
+
+    if strict:
+        return disallow_casting
     return cast_to_array
 
 
@@ -604,8 +637,9 @@ class NDArrayPydanticAnnotation:
         # similarly, get the dtype:
         dtype_type = get_args(get_args(_source_type)[1])[0]
 
-        # construct validator functions
-        cast_func = _get_cast_function(dtype_type)
+        # construct casting and validator functions
+        cast_func_lax = _get_cast_function(dtype_type, False)
+        cast_func_strict = _get_cast_function(dtype_type, True)
         validator_lax = _get_array_validator(
             expected_shape, dtype_type, False, _handler.field_name
         )
@@ -613,24 +647,26 @@ class NDArrayPydanticAnnotation:
             expected_shape, dtype_type, True, _handler.field_name
         )
 
-        # construct validator schema
-        array_validator_schema = core_schema.lax_or_strict_schema(
-            lax_schema=core_schema.no_info_plain_validator_function(
-                validator_lax
-            ),
-            strict_schema=core_schema.no_info_plain_validator_function(
-                validator_strict
-            ),
-        )
-
-        # construct final schema
-        array_schema = core_schema.chain_schema(
+        # construct combined casting and validator schema
+        lax_schema = core_schema.chain_schema(
             [
-                core_schema.no_info_plain_validator_function(cast_func),
-                array_validator_schema,
+                core_schema.no_info_plain_validator_function(cast_func_lax),
+                core_schema.no_info_plain_validator_function(validator_lax),
+            ]
+        )
+        strict_schema = core_schema.chain_schema(
+            [
+                core_schema.no_info_plain_validator_function(cast_func_strict),
+                core_schema.no_info_plain_validator_function(validator_strict),
             ]
         )
 
+        # construct final schema
+        array_schema = core_schema.lax_or_strict_schema(
+            lax_schema=lax_schema, strict_schema=strict_schema
+        )
+
+        # TODO: write proper serialization and deserialization schemas (#86)
         # serialization to JSON format
         json_serializer = core_schema.plain_serializer_function_ser_schema(
             lambda x: x.tolist(), when_used="json"
