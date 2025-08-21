@@ -35,7 +35,7 @@ def test_type_checking_shapes_exact_matches(
         f"np.array([[1, 2], [3, 4]], dtype=np.int32){ASSIGN_IGNORE}\n"
         "y_nt: NDArray[tuple[AxisLen, AxisLen], np.int32] = x_nt\n\n"
         "x_int_ell: NDArray[tuple[int, ...], np.int32] = "  # int, ...
-        f"np.array([[1, 2], [3, 4]], dtype=np.int32){ASSIGN_IGNORE}\n"
+        f"np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
         "y_int_ell: NDArray[tuple[int, ...], np.int32] = x_int_ell\n\n"
         "x_lit_ell: NDArray[tuple[L[2], ...], np.int32] = "  # L, ...
         f"np.array([[1, 2], [3, 4]], dtype=np.int32){ASSIGN_IGNORE}\n"
@@ -300,7 +300,7 @@ def test_type_checking_shapes_literal_ellipsis_with_int_ellipsis(
         f"np.array([[1, 2], [3, 4]], dtype=np.int32){ASSIGN_IGNORE}\n"
         "y_1: NDArray[tuple[int, ...], np.int32] = x_1\n\n"
         "x_2: NDArray[tuple[int, ...], np.int32] = "
-        f"np.array([[1, 2], [3, 4]], dtype=np.int32){ASSIGN_IGNORE}\n"
+        f"np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
         "y_2: NDArray[tuple[L[2], ...], np.int32] = x_2"
         "  # type: ignore\n\n"  # other way around is still illegal
     )
@@ -327,7 +327,7 @@ def test_type_checking_shapes_named_axis_ellipsis_with_int_ellipsis(
         f"np.array([[1, 2], [3, 4]], dtype=np.int32){ASSIGN_IGNORE}\n"
         "y_1: NDArray[tuple[int, ...], np.int32] = x_1\n\n"
         "x_2: NDArray[tuple[int, ...], np.int32] = "
-        f"np.array([[1, 2], [3, 4]], dtype=np.int32){ASSIGN_IGNORE}\n"
+        f"np.array([[1, 2], [3, 4]], dtype=np.int32)\n"
         "y_2: NDArray[tuple[AxisLen, ...], np.int32] = x_2"
         "  # type: ignore\n\n"  # other way around is still illegal
     )
@@ -368,6 +368,12 @@ def test_type_checking_shapes_cannot_assign_ellipses_to_explicit_shape(
     source_type: str, target_type: str, temp_file: tuple[TextIO, Path]
 ) -> None:
     """Test that ellipsis expressions cannot be assigned to explicit shapes"""
+    # Assignment passes even on np 2.2 if the source type is
+    # tuple[int, ...], so we must not ignore it:
+    if source_type == "int, ...":
+        assign_ign = ""
+    else:
+        assign_ign = ASSIGN_IGNORE
     # fmt: off
     test_string = (
         "from typing import NewType, Literal as L\n"
@@ -375,7 +381,7 @@ def test_type_checking_shapes_cannot_assign_ellipses_to_explicit_shape(
         "import numpy as np\n\n"
         "AxisLen = NewType('AxisLen', int)\n\n"
         f"x: NDArray[tuple[{source_type}], np.int32] = "
-        f"np.array([[1, 2], [3, 4]], dtype=np.int32){ASSIGN_IGNORE}\n"
+        f"np.array([[1, 2], [3, 4]], dtype=np.int32){assign_ign}\n"
         f"y: NDArray[tuple[{target_type}], np.int32] = x"
         "  # type: ignore\n\n"
     )
