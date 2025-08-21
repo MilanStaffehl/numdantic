@@ -292,6 +292,18 @@ def test_numpy_validation_from_sequence_incompatible_element_types() -> None:
     assert expected_msg in str(excinfo.value)
 
 
+def test_numpy_validation_from_sequence_strict_mode() -> None:
+    """Sequences are rejected in strict mode"""
+    test_sequence = [(1, 2), (3, 4)]
+    with pytest.raises(ValidationError) as excinfo:
+        StrictTestModel(matrix=test_sequence)  # type: ignore[arg-type]
+    expected_msg = (
+        "1 validation error for StrictTestModel\nmatrix\n  Input must be "
+        "a numpy array in strict mode, received list instead."
+    )
+    assert expected_msg in str(excinfo.value)
+
+
 def test_numpy_validation_new_type_as_axis_length(subtests: SubTests) -> None:
     """Test that int-based new types can be used as axis length"""
     arrays = [
