@@ -310,8 +310,8 @@ See the `numpy` documentation for [scalar types](https://numpy.org/doc/stable/re
 
 `pydantic` can run its validation in two modes: strict and lax mode. Depending on the mode chosen, inputs of a wrong type may be cast to the expected type, if possible (lax mode), or always raise an exception (strict mode). `numdantic` mirrors this behavior:
 
-- In **strict** mode, dtype must match exactly. If the input has a different dtype than the field expects it to, a `ValidationError` is raised. If you have specified only a generic dtype, the input must have a dtype that is a valid subtype of this generic type.
-- In **lax** mode, any mismatched dtype that can be safely cast to the target dtype is accepted and cast. Only if casting cannot be safely done, a `ValidationError` will be raised. If you have specified a generic dtype, casting will be performed only if the input has a dtype that is not a subtype of that generic dtype. Casting is performed directly to the generic dtype, meaning the resulting dtype is system-dependent!
+- In **strict** mode, dtype must match exactly. If the input has a different dtype than the field expects it to, a `ValidationError` is raised. If you have specified only a generic dtype, the input must have a dtype that is a valid subtype of this generic type. Sequences are rejected in strict mode and will always cause a `ValidationError` to be raised.
+- In **lax** mode, any mismatched dtype that can be safely cast to the target dtype is accepted and cast. Only if casting cannot be safely done, a `ValidationError` will be raised. If you have specified a generic dtype, casting will be performed only if the input has a dtype that is not a subtype of that generic dtype. Casting is performed directly to the generic dtype, meaning the resulting dtype is system-dependent! Sequences will also be cast to an array of the specified dtype.
 
 Shapes are never cast. This is to avoid hard to track bugs caused by arrays being reshaped into shapes that do not cause runtime issues, but produce wrong results. If an array input has the wrong shape, it will always raise a `ValidationError`.
 
@@ -337,6 +337,8 @@ serialization = my_model.model_dump()
 assert isinstance(serialization["array"], np.ndarray)  # passes
 assert serialization["array"].dtype is np.dtype(np.int64)  # passes
 ```
+
+In strict mode, sequences will not be cast to arrays and will instead cause a `ValidationError`.
 
 ## Limitations
 
@@ -494,7 +496,7 @@ If you have an idea for a new feature for `numdantic`, you can submit a feature 
 
 ### Discussion issues
 
-If you have interesting information, or know of interesting projects, discussions or developments regarding typing and validating `numpy` arrays, feel free to leave them here in a blank issue. Describe what you have found or add links. 
+If you have interesting information, or know of interesting projects, discussions or developments regarding typing and validating `numpy` arrays, feel free to leave them here in a blank issue. Describe what you have found or add links.
 
 Additionally, you can contribute to open discussion issues, marked with the `discussion` label. Everyone is welcome to chime in on these issues to help solve the problem they are about. Even if you don't have a full solution, feel free to contribute small thoughts as well!
 
