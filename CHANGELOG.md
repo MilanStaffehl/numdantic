@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+-
+
+## [0.2.0] - 2025-08-22
+
 ### Breaking Changes
 
 - Remove `Shape` type alias. Use built-in `tuple` instead. ([40977a0](https://github.com/MilanStaffehl/numdantic/commit/40977a0633c5a6e564306853bc9ab91a769c727c))
