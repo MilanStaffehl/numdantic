@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Dropped support for Python 3.11 in accordance with SPEC0 ([#99](https://github.com/MilanStaffehl/numdantic/pull/99))
+
 ### Fixed
 
 - Fixed a bug where arrays of rank one would cause an exception in validation ([#99](https://github.com/MilanStaffehl/numdantic/pull/99))

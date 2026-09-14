@@ -373,13 +373,13 @@ def test_numpy_validation_new_type_as_axis_length_shape(
 def test_numpy_validation_new_type_as_axis_length_error_msg() -> None:
     """Test accurate error message for more complex shapes"""
     # correct case
-    test_array: ComplexAxisLenType = np.ones((4, 1, 2, 1, 2), dtype=np.int32)  # type: ignore[assignment]
+    test_array: ComplexAxisLenType = np.ones((4, 1, 2, 1, 2), dtype=np.int32)
     my_model = ComplexAxisLengthModel(matrix=test_array)
     serialization = my_model.model_dump()
     np.testing.assert_equal(test_array, serialization["matrix"])
 
     # singular invalid case
-    test_array = np.ones((4, 1, 2, 1, 3), dtype=np.int32)  # type: ignore[assignment]
+    test_array = np.ones((4, 1, 2, 1, 3), dtype=np.int32)
     with pytest.raises(ValidationError) as excinfo:
         ComplexAxisLengthModel(matrix=test_array)
     expected_msg = (
@@ -391,7 +391,7 @@ def test_numpy_validation_new_type_as_axis_length_error_msg() -> None:
     assert expected_msg in str(excinfo.value)
 
     # double invalid case
-    test_array = np.ones((4, 1, 2, 3, 4), dtype=np.int32)  # type: ignore[assignment]
+    test_array = np.ones((4, 1, 2, 3, 4), dtype=np.int32)
     with pytest.raises(ValidationError) as excinfo:
         ComplexAxisLengthModel(matrix=test_array)
     expected_msg_part_one = (
