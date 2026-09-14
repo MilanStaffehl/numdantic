@@ -70,6 +70,12 @@ class ComplexAxisLengthModel(BaseModel):
     matrix: NDArray[tuple[int, AxisLen, AxisLen2, AxisLen, AxisLen2], np.int32]
 
 
+class RankOneArrayModel(BaseModel):
+    """Test model for a 1D array of int32 dtype"""
+
+    matrix: NDArray[tuple[int], np.int32]
+
+
 class IndeterminateDimModel(BaseModel):
     """Model with indeterminate array dimensionality"""
 
@@ -302,6 +308,15 @@ def test_numpy_validation_from_sequence_strict_mode() -> None:
         "a numpy array in strict mode, received list instead."
     )
     assert expected_msg in str(excinfo.value)
+
+
+def test_numpy_validation_rank_one_array() -> None:
+    """Regression test: check that rank 1 arrays can be validated"""
+    test_array = np.array([1, 2], dtype=np.int32)
+    my_model = RankOneArrayModel(matrix=test_array)
+    serialization = my_model.model_dump()
+    assert "matrix" in serialization
+    np.testing.assert_array_equal(test_array, serialization["matrix"])
 
 
 def test_numpy_validation_new_type_as_axis_length(subtests: SubTests) -> None:

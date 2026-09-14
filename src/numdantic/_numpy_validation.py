@@ -444,7 +444,7 @@ def _get_array_validator(
         validation_errors: list[PydanticCustomError] = []
 
         # validate array
-        if expected_shape[1] == "...":
+        if len(expected_shape) > 1 and expected_shape[1] == "...":
             x = _validate_array_indeterminate_shape(
                 x, expected_shape[0], validation_errors
             )
