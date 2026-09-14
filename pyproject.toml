@@ -11,7 +11,7 @@ authors = [
 description = "Library for numpy typing support and numpy array validation with pydantic"
 keywords = ["typing", "types", "numpy", "pydantic", "validation", "type hints", "type checking", "verification"]
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "pydantic >= 2.5.2, < 3.0.0",
     "numpy < 3.0.0"
@@ -22,7 +22,6 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "License :: OSI Approved :: MIT License",
@@ -85,7 +84,7 @@ ensure_newline_before_comments = true
 line_length = 79
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = true
 plugins = "numpy.typing.mypy_plugin"
 
